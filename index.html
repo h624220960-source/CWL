@@ -1,0 +1,230 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <meta name="description" content="CurrencyWarsLegacy - a browser remake of Honkai: Star Rail's Currency Wars.">
+  <title>CurrencyWarsLegacy</title>
+  <link rel="stylesheet" href="style.css">
+</head>
+<body>
+  <header class="site-header">
+    <h1 class="logo">CurrencyWarsLegacy</h1>
+    <div class="user-box" id="userBox" hidden>
+      <span class="user-name">Playing as <strong id="userGreeting"></strong></span>
+      <button id="changeUser" class="btn-ghost" type="button">Change</button>
+    </div>
+  </header>
+
+  <main>
+    <!-- Screen 1: Username gate -->
+    <section id="screen-username" class="screen">
+      <div class="panel">
+        <h2>Enter a username</h2>
+        <p class="muted">Choose a name to begin your run.</p>
+        <form id="usernameForm" autocomplete="off" novalidate>
+          <input
+            id="usernameInput"
+            type="text"
+            placeholder="Username"
+            maxlength="20"
+            autofocus>
+          <p id="usernameError" class="error" hidden></p>
+          <button type="submit" class="btn">Continue</button>
+        </form>
+      </div>
+    </section>
+
+    <!-- Screen 2: Mode select -->
+    <section id="screen-modes" class="screen" hidden>
+      <h2 class="screen-title">Select a mode</h2>
+      <p class="muted screen-subtitle">Choose how you want to play Currency Wars.</p>
+
+      <div class="mode-grid">
+        <button class="mode-card locked" type="button" disabled>
+          <span class="mode-tag">Locked</span>
+          <h3>Standard Gambit</h3>
+          <p>The combat system is being rebuilt from the ground up.</p>
+        </button>
+
+        <button class="mode-card locked" type="button" disabled>
+          <span class="mode-tag">Locked</span>
+          <h3>Overclock Gambit</h3>
+          <p>The shorter farming run returns once combat is back.</p>
+        </button>
+
+        <button class="mode-card" type="button" data-mode="battle">
+          <span class="mode-tag">Dev</span>
+          <h3>Combat Sandbox</h3>
+          <p>Aglaea vs two generic enemies. Manual turns with an auto-play toggle.</p>
+        </button>
+
+        <button class="mode-card" type="button" data-mode="lab">
+          <span class="mode-tag">Dev</span>
+          <h3>Character Lab</h3>
+          <p>Browse implemented kits, elements and On/Off-Field statuses.</p>
+        </button>
+      </div>
+    </section>
+
+    <!-- Screen 3: Character Lab -->
+    <section id="screen-lab" class="screen lab-screen" hidden>
+      <div class="lab-head">
+        <div>
+          <h2 class="screen-title">Character Lab</h2>
+          <p class="muted screen-subtitle">Character kits are being built one by one. Combat is offline.</p>
+        </div>
+        <button id="labBack" class="btn-ghost" type="button">Back</button>
+      </div>
+
+      <div class="lab-filters">
+        <input id="labSearch" type="text" placeholder="Search characters..." autocomplete="off">
+        <select id="labPosition" aria-label="Filter by position">
+          <option value="all">All positions</option>
+          <option value="on">On-Field</option>
+          <option value="off">Off-Field</option>
+          <option value="both">Both</option>
+        </select>
+        <select id="labElement" aria-label="Filter by element">
+          <option value="all">All elements</option>
+        </select>
+        <select id="labCost" aria-label="Filter by cost">
+          <option value="all">All costs</option>
+          <option value="5">5-cost</option>
+          <option value="4">4-cost</option>
+          <option value="3">3-cost</option>
+          <option value="2">2-cost</option>
+          <option value="1">1-cost</option>
+        </select>
+      </div>
+
+      <p id="labCount" class="muted lab-count"></p>
+      <div id="labGrid" class="lab-grid"></div>
+    </section>
+
+    <!-- Screen 4: Combat Sandbox -->
+    <section id="screen-battle" class="screen battle-screen" hidden>
+      <div class="battle-head">
+        <div>
+          <h2 class="screen-title battle-title">Combat Sandbox</h2>
+          <p class="muted">Infinite-HP test run: Aglaea, Firefly, Feixiao and Qingque vs three Debt Collectors. The run ends at 2000 AV, about 20 turns at 100 SPD. Click an enemy to target it, click an ally for stats, and press 1-4 for Ultimates.</p>
+        </div>
+        <div class="battle-head-actions">
+          <button id="battleRestart" class="btn-ghost" type="button">Restart</button>
+          <button id="battleBack" class="btn-ghost" type="button">Back</button>
+        </div>
+      </div>
+
+      <div class="battle-layout">
+        <aside class="turn-panel">
+          <div class="turn-panel-head">
+            <span class="battle-hud-label">Action Value</span>
+            <strong id="battleAV">0 / 2000</strong>
+            <div class="battle-bar battle-bar-av"><span id="battleAVBar"></span></div>
+          </div>
+          <h3 class="turn-panel-title">Turn Order</h3>
+          <div id="battleTurnOrder" class="turn-order"></div>
+        </aside>
+
+        <div class="battle-main">
+          <div class="battle-hud">
+            <div class="battle-hud-block">
+              <span class="battle-hud-label">Skill Points</span>
+              <strong id="battleSP">3 / 5</strong>
+              <div id="battleSPPips" class="sp-pips"></div>
+            </div>
+            <div class="battle-hud-block">
+              <span class="battle-hud-label">Turn</span>
+              <strong id="battleTurn">Aglaea</strong>
+            </div>
+          </div>
+
+          <div id="battleResult" class="battle-result" hidden></div>
+
+          <div class="battle-arena">
+            <section class="battle-side">
+              <h3 class="battle-side-title">Enemies</h3>
+              <div id="battleEnemies" class="battle-unit-row"></div>
+            </section>
+
+            <section class="battle-side">
+              <h3 class="battle-side-title">Your Team</h3>
+              <div id="battlePlayers" class="battle-unit-row"></div>
+            </section>
+          </div>
+
+          <div class="battle-controls">
+            <p id="battleHint" class="battle-hint muted">Select an enemy target.</p>
+            <div id="battleActions" class="battle-actions"></div>
+            <label class="battle-auto">
+              <input id="battleAuto" type="checkbox">
+              <span>Auto-play</span>
+            </label>
+          </div>
+
+          <section class="battle-log-wrap">
+            <div class="battle-log-head">
+              <h3>Battle Log</h3>
+              <span id="battleLogCount" class="muted"></span>
+            </div>
+            <div id="battleLog" class="battle-log"></div>
+          </section>
+        </div>
+      </div>
+    </section>
+  </main>
+
+  <!-- Floating combat numbers -->
+  <div id="battleDamageLayer" class="damage-number-layer" aria-hidden="true"></div>
+
+  <!-- Ultimate cinematic -->
+  <div id="ultOverlay" class="ult-overlay" hidden>
+    <div class="ult-caption">
+      <span id="ultCaptionName"></span>
+      <span id="ultCaptionSkill"></span>
+    </div>
+  </div>
+
+  <!-- Combat stats overlay -->
+  <div id="battleStatsOverlay" class="battle-stats-overlay" hidden>
+    <div class="battle-stats-panel" role="dialog" aria-modal="true" aria-labelledby="battleStatsName">
+      <button id="battleStatsClose" class="battle-stats-close" type="button" aria-label="Close">&times;</button>
+      <div id="battleStatsBody" class="battle-stats-body"></div>
+    </div>
+  </div>
+
+  <!-- Character detail overlay -->
+  <div id="charOverlay" class="char-overlay" hidden>
+    <div class="char-panel" role="dialog" aria-modal="true" aria-labelledby="charName">
+      <button id="charClose" class="char-close" type="button" aria-label="Close">&times;</button>
+      <div id="charBody" class="char-body"></div>
+    </div>
+  </div>
+
+  <!-- Itinerary (codex) -->
+  <button id="codexBtn" class="codex-fab" type="button" aria-label="Open itinerary">
+    Itinerary
+  </button>
+
+  <div id="codexOverlay" class="codex-overlay" hidden>
+    <div class="codex-panel" role="dialog" aria-modal="true" aria-labelledby="codexTitle">
+      <header class="codex-head">
+        <h2 id="codexTitle">Itinerary</h2>
+        <button id="codexClose" class="codex-close" type="button" aria-label="Close">&times;</button>
+      </header>
+      <nav id="codexTabs" class="codex-tabs" aria-label="Itinerary sections"></nav>
+      <div id="codexBody" class="codex-body"></div>
+    </div>
+  </div>
+
+  <footer class="site-footer">
+    <p>&copy; <span id="year"></span> CurrencyWarsLegacy - a fan remake. Not affiliated with HoYoverse.</p>
+  </footer>
+
+  <script src="script.js"></script>
+  <script src="characters.js"></script>
+  <script src="combat.js"></script>
+  <script src="battleScreen.js"></script>
+  <script src="characterLab.js"></script>
+</body>
+</html>

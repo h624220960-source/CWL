@@ -1,0 +1,902 @@
+================================================================================
+CURRENCY WARS ("CURRENCY WARS: ZERO-SUM GAME") — RESEARCH INIT FILE
+Honkai: Star Rail side game mode
+================================================================================
+
+PURPOSE OF THIS FILE
+--------------------
+This is a research/reference snapshot of the Honkai: Star Rail side mode
+"Currency Wars" (full name "Currency Wars: Zero-Sum Game"), captured for a
+community remake project (repo: CurrencyWarsLegacy). The goal is to preserve
+the state of the CURRENT season before the next game update rotates/deletes it.
+
+Snapshot date: 2026-10-15
+Current game version at snapshot: 4.6 "Dance With the Beast Before Moonrise"
+(launched 2026-09-27/28, runs to ~2026-11-10) [20].
+
+PRIORITY AREAS (per project brief): [Bonds], [Characters],
+[Investment Strategies]. These are covered first and in the most depth.
+
+IMPORTANT CAVEATS
+-----------------
+* Currency Wars is a PERMANENT mode, but each season/update ROTATES characters,
+  rebalances Bonds, adjusts costs/positioning, and swaps Investment Strategies
+  and Environments. Some docs therefore contradict each other because they were
+  written in different versions (e.g. 4.0 vs 4.4 vs 4.6). Where sources
+  conflict, it is flagged. The roster below reflects the latest available
+  (v4.4–v4.6 era) data.
+* Numbers (percentages, costs, bond thresholds, star stats) are frequently
+  rebalanced between patches. Treat exact figures as "as-documented" and
+  re-verify against the in-game Data Bank before shipping a remake.
+* Sources are cited inline as [n] and listed in the SOURCES section.
+
+================================================================================
+SECTION 0. TABLE OF CONTENTS
+================================================================================
+0.  Table of Contents
+1.  What Is Currency Wars? (Overview & Core Loop)
+2.  Match Structure (Planes, Nodes, Squad HP, Gambit modes, Ranks)
+3.  CHARACTERS  [PRIORITY]
+    3.1  Cost / Rarity system
+    3.2  Star Level (promotion)
+    3.3  Positioning (On-Field / Off-Field / Both)
+    3.4  Character Empowerment
+    3.5  Levels, Team Size, Shop odds
+    3.6  Full roster by cost (as documented, v4.4–4.6)
+    3.7  Expert Advisors
+    3.8  Notable character empowerments (examples)
+4.  BONDS  [PRIORITY]
+    4.1  How Bonds work (levels, thresholds, emblems)
+    4.2  Faction Bonds (members + effects)
+    4.3  School Bonds (members + effects)
+    4.4  Independent / Character-specific Bonds
+    4.5  Bond tier-list impressions
+5.  INVESTMENT STRATEGIES & ENVIRONMENTS  [PRIORITY]
+    5.1  Environments vs Strategies (what they are)
+    5.2  Rarity tiers & difficulty scaling
+    5.3  Investment Environments (list + effects)
+    5.4  Investment Strategies (categories + examples)
+    5.5  Economy / "investment" tactics (interest, win-streak, leveling)
+    5.6  Recommended Environment/Strategy paths per archetype
+6.  EQUIPMENT & CONSUMABLES
+    6.1  Basic equipment (8 types)
+    6.2  Advanced / Privileged equipment
+    6.3  Emblems, Gems, Wealth Gem
+    6.4  Consumables
+7.  META TEAMS / ARCHETYPES (as documented)
+8.  SYMBOLS, TERMS & GLOSSARY
+9.  SOURCES
+10. OPEN QUESTIONS / GAPS TO VERIFY
+
+================================================================================
+SECTION 1. WHAT IS CURRENCY WARS? (OVERVIEW & CORE LOOP)
+================================================================================
+* Currency Wars is a permanent, auto-chess / deck-building roguelike side mode
+  in Honkai: Star Rail, introduced in Version 3.7 (Nov 2025). [1][2][15][16]
+* You assemble a squad of 3 to 10 characters (commonly described as an
+  "8-10 member" team). Up to 4 fight On-Field; up to 6 support Off-Field. [1][3]
+* Unlike normal HSR team-building, you DO NOT pick your team up front. You are
+  given a random set of starting characters and recruit more during a run by
+  spending a currency called GOLD COINS. [3]
+* Core loop: "Spend coins to purchase characters -> combine/upgrade -> build
+  Bonds -> win battles." Each match has 3 Planes of nodes, then a final boss. [2]
+* You may USE any character as a "trial" even if you don't own them. If you own
+  a character, your account progression carries over; under-built owned
+  characters are auto-boosted to a minimum template (ability lv 8 + best
+  relics/planar by usage rate). If you don't own them, a trial version is
+  used. [1][14][16]
+* In-lore framing: the Strategic Investment Department, IPC capital markets,
+  "capital game," etc. Accessed via Interastral Peace Guide or the Currency
+  Wars marker in Dewlight Pavilion (Penacony). Requires Trailblaze Level >= 21
+  and completion of the Currency Wars Adventure Mission tutorial. [2][3][16]
+
+CORE "COMBAT DIFFERENCES" vs normal HSR: [16]
+- 8-10 character roster, 4 on-field / 6 off-field.
+- All characters get mode-exclusive kits ("Character Empowerment").
+- Characters have Star Levels and Costs, and belong to Bonds.
+- Battles are still turn-based but the strategic layer is economy + synergy.
+
+================================================================================
+SECTION 2. MATCH STRUCTURE
+================================================================================
+PLANES & NODES [12][16]
+* A match consists of 3 Planes. Each Plane has several Nodes of different types:
+  - Reward Node: low difficulty, "infinite Action Value" (no loss pressure);
+    enemies drop crystal ores / rewards. Easy cash + cards.
+  - Battle Node ("Combat Node"): challenging combat vs normal/elite enemies
+    from competitor factions.
+  - Supply Node: offers several sets of character and Equipment Supply Packs;
+    freely choose supplies based on your lineup.
+  - Encounter Node: challenge with SELECTABLE difficulty; higher difficulty =
+    better rewards.
+  - Boss Node: the Plane's boss. Clearing it clears the Plane.
+* The 3 bosses are randomly generated each run. [3]
+* First two nodes are typically Reward nodes -> good point to bank coins. [17]
+
+SQUAD HP & RATINGS [3]
+* Start with Squad HP 100.
+* Fail to defeat an enemy stage within the turn limit -> lose Squad HP. Boss
+  stages also have a MINIMUM progress threshold; failing it costs extra HP.
+* Characters can't be permanently knocked down: at 0 HP they are healed for a
+  portion and the turn limit is reduced instead.
+* Run ends when all stages cleared OR Squad HP hits 0.
+* Final run rating: C to SSS based on remaining Squad HP.
+* Running out of HP does NOT lose you rank (only affects the run). [3][17]
+
+GAMBIT MODES [3][16][17]
+* STANDARD GAMBIT: the main mode for CLIMBING RANK + rewards. Difficulty =
+  your current rank (or lower). Completing at your highest available difficulty
+  increases rank.
+* OVERCLOCK GAMBIT: a SHORTER version of Standard Gambit (fewer combat nodes,
+  faster resource gain). CANNOT gain ranks. Used to farm bi-weekly points.
+  Unlocks after you first complete a Standard Gambit run.
+
+RANK & REWARDS [1][3][16]
+* 9 ranks: A0 Black Iron, A1 Viridian Bronze, A2 Jade Steel, A3 Cobalt Silver,
+  A4 Ice Titanium, A5 Amethyst Gold, A6 Investment Master, A7 Monarch of
+  Capital, A8 Wealth Creator. [1]
+* Rank-up from a winning Standard run (based on remaining Squad HP):
+    70-100 Squad HP -> +3 ranks
+    40-69  Squad HP -> +2 ranks
+    1-39   Squad HP -> +1 rank
+* Max difficulty was raised over time; by v4.4+ it is "A8 Wealth Creator"
+  with numbered sub-tiers (e.g. A8-30, later references to A8-50). [1][10]
+* Currency Wars Points reset bi-weekly (Monday 04:00 server time) with point
+  rewards (Stellar Jade, Star Rail Pass, etc.). Ascension Points are seasonal
+  and higher-version caps were raised (Lv 110 in an early expansion, Lv 170 in
+  a later one). [1][9][10][16]
+
+================================================================================
+SECTION 3. CHARACTERS  [PRIORITY]
+================================================================================
+
+3.1 COST / RARITY SYSTEM [3][16]
+Each character has a Cost = Gold Coins required to recruit. Color-coded:
+  Grey  = 1-cost   (weakest base kit, HIGHEST growth/development potential)
+  Green = 2-cost
+  Blue  = 3-cost
+  Purple= 4-cost
+  Gold  = 5-cost   (strongest base kit, LOWER development potential, can't be
+                    recruited immediately — needs higher level to appear)
+* Higher cost generally = stronger base kit; lower cost = better scaling when
+  starred up. A 3-star low-cost unit can outperform a 1-star high-cost unit. [3]
+
+3.2 STAR LEVEL (PROMOTION) [3][14]
+* Every character is recruited at 1-star.
+* Buying 3 identical characters at the same star level auto-merges into the
+  next star:
+    3x (1-star) -> one 2-star
+    3x (2-star) -> one 3-star  (i.e. 9 base copies total)
+* 3-star is typically a character's most powerful form (some effects allow
+  4-star). Higher stars greatly buff the kit AND stats. [16][14]
+* Duplicates bought from shop: with the "Downward Mobility of Talent"
+  Investment Environment the shop can occasionally sell 2-star characters. [14]
+
+3.3 POSITIONING [3][16]
+Three roles, shown by icon (top square filled = On-Field; bottom = Off-Field;
+both = both):
+  On-Field: placed in front; controlled directly (or auto-play); can attack &
+            be attacked.
+  Off-Field: placed in back; acts automatically; generally cannot attack
+             (unless an ability says so) and cannot be targeted; uses support
+             abilities.
+  On/Off-Field: can go either area with no downside.
+* Placing a character in the WRONG area REMOVES their unique Currency Wars
+  abilities (you may still do it, but lose the empowerment). [3]
+
+3.4 CHARACTER EMPOWERMENT [2][16][18]
+* Mode-exclusive ability that either enhances the base kit or grants a
+  brand-new ability. Placing a character in their correct positioning activates
+  it. Examples:
+  - Firefly gains the SAM boss's "Supernova Overload"-style move. [18]
+  - Qingque gets temporary SP and can keep using Skill past Hidden Hand. [18]
+  - Natasha provides damage amplification to allies. [18]
+  - Jade off-field unlocks "Debt Collector" (synergizes with Herta on-field). [18]
+  - Tribbie: on-field can Ult manually; off-field Ults at start of combat and
+    follows up periodically. [18]
+  - Herta: off-field triggers her follow-up when any enemy drops below 50% HP,
+    and each use raises ALL allies' damage (scales over a run). [18][21]
+
+3.5 LEVELS, TEAM SIZE, SHOP ODDS
+* You start at Level 3 = deploy up to 3 characters. Max team size = your
+  Experience Level (up to 10). Level up by winning battles (≈ +2 EXP per clear)
+  or buying EXP with Gold Coins. Higher level also raises odds of high-cost
+  characters in the shop. [3][17]
+* SHOP APPEARANCE ODDS BY LEVEL (as documented, may be rebalanced): [14]
+    Level | 1-cost | 2-cost | 3-cost | 4-cost | 5-cost
+    ------+--------+--------+--------+--------+-------
+      1-3 |  100%  |    -   |    -   |    -   |   -
+      4   |   65%  |   25%  |   10%  |    -   |   -
+      5   |   45%  |   33%  |   20%  |    2%  |   -
+      6   |   30%  |   40%  |   25%  |    5%  |   -
+      7   |   19%  |   30%  |   40%  |   10%  |   1%
+      8   |   18%  |   25%  |   32%  |   22%  |   3%
+      9   |   15%  |   20%  |   25%  |   30%  |  10%
+     10   |    5%  |   10%  |   20%  |   40%  |  25%
+  (Trick: buy off-bench units you DON'T want to remove them from the pool and
+  raise the odds of seeing your target. Fast-leveling lowers low-cost odds, so
+  finish low-cost 3-stars BEFORE leveling.) [17]
+
+3.6 FULL ROSTER BY COST (as documented, v4.4–4.6 era)
+NOTE: Sources conflict due to different patch snapshots. Below merges the
+Icy Veins list (updated Sep 2026) [1] with the Fandom list [14]; differences
+noted. When in doubt, verify in-game (Data Bank).
+
+GOLD / 5-COST [1][14]
+  Topaz & Numby, Jing Yuan, Yunli, Firefly, Cyrene, Bronya, Welt, Archer,
+  Black Swan.
+  (Fandom adds: Archer, Bronya — consistent; Beebom-era list also included
+   these.)
+
+PURPLE / 4-COST [1][14]
+  Gepard, Luocha, Fu Xuan, Yanqing, Robin, Boothill, The Herta, Castorice,
+  Evernight, Remembrance Trailblazer, Hysilens, Sparxie, Silver Wolf.
+  (Fandom list similar; Evernight appears in later bond lists but not always in
+   older cost lists — rebalanced between patches.)
+
+BLUE / 3-COST [1][14]
+  Saber, Seele, Natasha, Jingliu, Fugue, Dr. Ratio, Acheron, Sunday, Anaxa,
+  Cerydra, Phainon, Himeko • Nova, Silver Wolf LV.999, Himeko.
+  (* "Himeko • Nova", "Silver Wolf LV.999", "Himeko" are v4.6-era additions/
+    variants; older lists show the base units. Fandom 4.6 list: Himeko, Saber,
+    Seele, Natasha, Jingliu, Fugue, Dr. Ratio, Acheron, Sunday, Anaxa, Phainon,
+    Cerydra, Trailblazer-forms.)
+
+GREEN / 2-COST [1][14]
+  Kafka, Dan Heng • Imbibitor Lunae, Lingsha, Argenti, Ruan Mei, Aventurine,
+  Sparkle, Tribbie, Hyacine, Dan Heng • Permansor Terrae, Ashveil, Mortenax
+  Blade, Evanescia, Gilgamesh, Pela.
+  (Fandom 4.6 list: Kafka, Pela, Dan Heng • Imbibitor Lunae, Dan Heng •
+   Permansor Terrae, Huohuo, Feixiao, Argenti, Ruan Mei, Aventurine, Sparkle,
+   Tribbie, Mydei.)
+
+GREY / 1-COST [1][14]
+  Herta, Huohuo, Jiaoqiu, Feixiao, Jade, Rappa, The Dahlia, Aglaea, Mydei,
+  Cipher, Yao Guang, Rin Tohsaka, The Hunt March 7th, Asta, Sampo, Qingque,
+  Tingyun, Blade, Moze, Gallagher.
+  (Fandom 4.6 list similar; some units shift between 1-cost and 2-cost
+   depending on patch.)
+
+KEY TAKEAWAY ON DISCREPANCIES: Cost tiers and even which units exist shift
+between versions (e.g. Feixiao was "demoted" from a higher tier to 1-cost in
+one update; Gallagher/Tingyun/Qingque moved to Expert Advisor status in 4.0).
+This is exactly why this snapshot is being archived.
+
+3.7 EXPERT ADVISORS (introduced v4.0) [1][10][15]
+* Special characters that CANNOT be recruited from the store at the start.
+  They are unlocked via specific Investment Environments, Investment
+  Strategies, or Expert Invitations.
+* Once unlocked they act like normal crew: purchasable, upgradable, equippable,
+  and keep their Bonds. Each ties to a unique Environment/Strategy effect that
+  adds special gameplay.
+* Named Expert Advisors (v4.0+): Gallagher, Tingyun, Qingque (and later Himeko
+  for the Astral Express). Example: the Prismatic strategy "Jade Expert:
+  Qingque" grants an Expert Advisor Qingque with 3 random Emblems and puts her
+  in the store for the run. [1]
+* Bond pages list "Expert Advisors" per bond, e.g. Moze (Follow-Up), Blade &
+  Silver Wolf (Stellaron Hunters), Pela (Debuff), Sampo (DoT / Galactic
+  Voyager), Qingque (Skill Points / Xianzhou), Tingyun (Energy / Xianzhou),
+  Gallagher & Himeko (Break), Blade (Bloodflame), Silver Wolf (Quantum
+  Resonance), Gallagher (Heal / Planet of Festivities). [4]
+
+3.8 NOTABLE CHARACTER EMPOWERMENTS (examples, as documented) [18][21][19]
+  - Firefly (5c, Break): gains a powerful boss move; the Break 5-cost anchor.
+  - Jing Yuan (5c, Xianzhou): "two characters in a trenchcoat" — anchors the
+    Xianzhou Lightning-Lord synergy.
+  - Himeko • Nova (Express, independent "Navigator" bond): picks another
+    Express Cohort character, GAINS that character's School Bond and their
+    first Equipment effect; the summoned "Astral Express"/"Light Rail" changes
+    based on the chosen character. Key enabler for Express comps. [7]
+  - Rin Tohsaka (Skill Point, Fate): on-field builds "Gem Energy" then Joint
+    Follow-Up with Archer; consumes Gem Energy to boost allies' CRIT DMG. [7]
+  - Gilgamesh (Energy, Fate): increases all allies' Lucky Strike DMG based on
+    squad equipment count; off-field enhanced state attacks all enemies. [7]
+  - Evanescia (2c, Elation/Galactic Voyager): Aha Instant / Punchline engine. [19]
+  - Aglaea: converts SPD into ATK/Strength; the premier "wheelchair" carry when
+    stacked with Anti-Grav Boots + Light Speed Propeller. [16][17]
+  - Mortenax Blade: forges temporary equipment pre-combat; deploys a Zone on
+    entry; whole team's attacks can trigger his extra Skill. [7]
+  - Herta (1c): off-field follow-up scaling with kills (see 3.4). [18][21]
+  - Qingque (Expert Advisor, Skill Point): repeat-skill spam with temp SP. [4][18]
+  - Natasha: ally damage amplification. [18]
+
+================================================================================
+SECTION 4. BONDS  [PRIORITY]
+================================================================================
+
+4.1 HOW BONDS WORK [4][5][16]
+* Every character carries Bond "tags." Bond types:
+    - FACTIONS: based on faction/world (e.g. Xianzhou, Belobog).
+    - SCHOOLS: based on playstyle/mechanics (e.g. Follow-Up ATK, Break, DoT).
+    - INDEPENDENT / CHARACTER-SPECIFIC: tied to a single character; active
+      while that character is deployed (e.g. Phainon's "Deliverer/Savior",
+      Himeko • Nova's "Navigator", Black Swan's "Destiny Diviner").
+* Deploy enough characters sharing a Bond to activate its effect. MORE members
+  = higher Bond LEVEL = stronger effect. Bond effects are always on (during a
+  run), listed on the left side of the screen during a run. [4][16]
+* Recommended: pick 2-3 Bonds and build the team around them — they provide
+  extremely strong effects. [3]
+* EMBLEMS: each Bond usually has a matching "Emblem" equipment. Equipping an
+  Emblem on a NON-Bond character makes them join that Bond (counting toward the
+  count and gaining its buff). Emblems are usually synthesized from Red/Blue
+  Gems + a basic equipment. [5][8]
+* Typical activation thresholds seen: 4 / 6 / 7 / 8 / 9 / 10 members for higher
+  tiers (varies by Bond and patch). "Prism" top tier often needs 8-10 members. [4][13]
+* Achievements (Bond Link) exist for activating each Bond, occasionally
+  demanding specific high thresholds (e.g. "Activate 10 Xianzhou", "Activate 9
+  Wolf Hunt", "Activate 10 Break"). [6]
+
+4.2 FACTION BONDS (members + effect summary)
+(Compiled from Icy Veins [4] + Fandom/Beebom [5][6]; roster v4.4–4.6 era.)
+
+XIANZHOU
+  Members: Yao Guang, Huohuo, Dan Heng • Imbibitor Lunae, Fugue, Fu Xuan,
+           Yanqing, Jing Yuan.
+  Expert Advisors: Qingque, Tingyun.
+  Effect: Summons the LIGHTNING-LORD; when it acts it attacks ALL enemies
+          (AoE). Bond level scales the Lightning-Lord's power. Considered one
+          of the strongest faction bonds (largest member pool, strong early
+          AoE; needs 10 for top tier). [4][6][13]
+
+WOLF HUNT
+  Members: Jiaoqiu, Feixiao, Lingsha, Jingliu, Yanqing, Yunli.
+  Expert Advisors: Moze.
+  Effect: Summons "BORISIN" to fight; it gains EXP over combat, evolves into
+          different attack forms, and buffs allies. Needs units/Emblems to
+          reach the top "Hoolay"/"Crimson Moon: Lupine Prime Divine"
+          evolution. RNG/item dependent. [4][6][13]
+
+NIGHT DEMIGOD
+  Members: Mydei, Cipher, Dan Heng • Permansor Terrae, Cerydra, Castorice,
+           Evernight, Cyrene.
+  Effect: Demigod faction (Amphoreus); provides team buffs tied to member
+          count (bond level). [4]
+
+DAY DEMIGOD
+  Members: Aglaea, Tribbie, Hyacine, Anaxa, Hysilens, Cyrene.
+  Effect: Grants SPD Amplification and access to "Day: Light Speed Propeller"
+          (increases DMG based on SPD) — core to the Aglaea comp. [4][11][13]
+
+BELOBOG
+  Members: Seele, Natasha, Gepard, Bronya.
+  Expert Advisors: Sampo, Pela.
+  Effect: Summons/empowers allies; considered strong (Seele carries). Tiers
+          adjusted in a later patch alongside Break. [4][7]
+
+EXPRESS COHORT (Astral Express)
+  Members: The Hunt March 7th, Dan Heng • Imbibitor Lunae, Sunday,
+           Himeko • Nova, Destruction Trailblazer, Preservation Trailblazer,
+           Harmony Trailblazer, Remembrance Trailblazer, Elation Trailblazer,
+           Welt.
+  Expert Advisors: Himeko.
+  Effect: Summons the "Astral Express"/"Light Rail" for additional damage/
+          support; strength scales with member count. Himeko • Nova's
+          "Navigator" independent bond lets her copy another Express member's
+          School Bond. [4][7]
+
+COSMIC SCHOLAR
+  Members: Asta, Herta, Ruan Mei, Dr. Ratio, The Herta.
+  Effect: Stacks "CAKE CATS" based on the star level of Cosmic Scholar members;
+          bonus rewards based on stack count (economy/scaling bond). [5][6]
+
+GALACTIC VOYAGER
+  Members: Argenti, Evanescia, Dr. Ratio, Luocha, Sparxie, Welt.
+  Expert Advisors: Sampo.
+  Effect: faction buff (member-count scaling). [4]
+
+THE PLANET OF FESTIVITIES
+  Members: The Dahlia, Sparkle, Sunday, Robin, Black Swan.
+  Expert Advisors: Gallagher.
+  Effect: Penacony faction buff; can be paired with Break (achievement asks to
+          activate Break + Planet of Festivities together). [4][6]
+
+STELLARON HUNTERS
+  Members: Kafka, Mortenax Blade, Silver Wolf LV.999, Firefly.
+  Expert Advisors: Blade, Silver Wolf.
+  Effect: The most-equipped Hunter becomes the "STAR HUNTER"; the other
+          Hunters assist via coordinated attacks. E.g. when Firefly is Star
+          Hunter, after enough Hunter attacks she immediately fires her
+          Ultimate ("Supernova Overload"). [5][6]
+
+HOLY GRAIL OF DESTINY (Fate collab, added late in season)
+  Members: Rin Tohsaka, Gilgamesh, Saber, Archer.
+  Effect: On Bond-level-up, perform a "Holy Grail Wish" — the Grail offers two
+          random wish missions; complete one for rewards: Destiny Components
+          (e.g. "Avalon", "Enuma Elish"), Gold Coins, Emblems. Equipment such
+          as the Jewel Sword, Enuma Elish, Avalon massively buff Fate units.
+          (Before the collab went live, provided temporary team buffs only.) [7]
+
+GALAXY RANGER
+  Members: Rappa, Ashveil, Acheron, Boothill.
+  Effect: faction buff; small member pool (good for early/easy bond-link). [4][6]
+
+IPC
+  Members: Jade, Aventurine, Topaz & Numby.
+  Effect: faction buff; small member pool. [4][6]
+
+4.3 SCHOOL BONDS (members + effect summary)
+
+BREAK
+  Members: Rappa, The Dahlia, Lingsha, Ruan Mei, Fugue, Boothill, Firefly.
+  Expert Advisors: Gallagher, Himeko.
+  Effect: Increases Break members' On/Off-Field Strength; when attacking a
+          Weakness-Broken enemy, deal SUPER BREAK DMG; lowers enemy initial
+          Toughness and Toughness regen. Strong but heavily item-dependent
+          (Firefly is the 5-cost capstone; Fugue is the "double bar" enabler). [4][5][13]
+
+FOLLOW-UP ATK
+  Members: Feixiao, Cipher, Aventurine, Ashveil, Dr. Ratio, Robin,
+           Topaz & Numby.
+  Expert Advisors: Moze.
+  Effect: Members can trigger "UNIFIED ATTACK" after multiple consecutive
+          actions, dealing True DMG based on accumulated Follow-Up DMG.
+          High ceiling, low floor at high difficulty. [4][5][13]
+
+ENERGY
+  Members: Huohuo, Aglaea, Gilgamesh, Saber, Sunday, Yunli, and all
+           Trailblazer forms (Destruction/Preservation/Harmony/Remembrance/
+           Elation).
+  Expert Advisors: Tingyun.
+  Effect: Regenerates Energy; the bond itself deals damage based on Energy
+          consumed at higher thresholds (5/7). Core to the Aglaea "wheelchair"
+          comp (Aglaea is the engine). Mid-game damage spike. [4][5][13]
+
+AOE ATK
+  Members: Herta, Jade, Argenti, Tribbie, Anaxa, The Herta, Jing Yuan.
+  Effect: AoE-oriented buffs/amplification for multi-target damage. [4][6]
+
+BLOODFLAME
+  Members: Mydei, Hyacine, Mortenax Blade, Jingliu, Castorice, Evernight,
+           Bronya.
+  Expert Advisors: Blade.
+  Effect: Based on HP consumed by Bloodflame members, increases damage dealt
+          and activates "BLOODFLAME ARENA" to attack all enemies. Castorice is
+          the main DPS; pairs with Heal. [4][5]
+
+ELATION
+  Members: Yao Guang, Evanescia, Silver Wolf LV.999, Sparxie,
+           Elation Trailblazer.
+  Effect: Elation-based stacking (Aha Instant / Punchline engine);
+          Silver Wolf Lv.999 + Yao Guang core. [4][10]
+
+DEBUFF
+  Members: Jiaoqiu, Cipher, Mortenax Blade, Acheron, Yanqing, Welt.
+  Expert Advisors: Pela.
+  Effect: Applies layered debuffs; scales well all game. Acheron is the
+          anchor; Mortenax Blade powers debuff/DoT. Often needs Emblems and
+          is countered by cleanse environments. [4][13]
+
+SKILL POINTS
+  Members: Rin Tohsaka, Dan Heng • Imbibitor Lunae, Sparkle, Cerydra, Sparxie,
+           Archer.
+  Expert Advisors: Qingque.
+  Effect: Raises ally max Skill Points; when SP-bond members spend SP they
+          "draw for a prize" — chance of DMG Boost, SP restore, immediate
+          action, etc. Very strong (S-tier) with Sparkle/Imbibitor Lunae. Also
+          SP-inducing equipment (e.g. "Momentum Edge") is key. [4][5][6]
+
+DOT (Damage over Time)
+  Members: Asta, Jiaoqiu, Kafka, Hysilens, Black Swan.
+  Expert Advisors: Sampo.
+  Effect: Amplifies DoT; when an enemy acts, applies "Super Excitation" that
+          deals DoT and triggers more DoT on affected enemies. Strong early,
+          KPIs into a safe high-difficulty line; Kafka is the engine, Hysilens
+          is the near-mandatory anchor. Counters: cleanse/purification. [4][5][13]
+
+QUANTUM RESONANCE
+  Members: Sparkle, Tribbie, Seele, Fu Xuan.
+  Expert Advisors: Silver Wolf.
+  Effect: Quantum-focused buffs (e.g. "Synchronized Frequency" ramps enemy
+          DMG taken). Easy to set up; strong with SP synergy. [4][5][17]
+
+HEAL
+  Members: Huohuo, Lingsha, Hyacine, Natasha, Luocha, Fu Xuan.
+  Expert Advisors: Gallagher.
+  Effect: Healing-based bond (utility/sustain; historically low damage value). [4]
+
+SHIELD
+  Members: The Hunt March 7th, Aventurine, Dan Heng • Permansor Terrae,
+           Gepard.
+  Effect: Shield synergy; pairs with counter/shield-based builds (e.g. a
+          Phainon shield-counter line). [4][13]
+
+4.4 INDEPENDENT / CHARACTER-SPECIFIC BONDS [4][14][7]
+These belong to a single character and are active while that character is in:
+  - "Navigator" — Himeko • Nova (copies an Express member's School Bond).
+  - "Deliverer" / "Savior" — Phainon (his own scaling/buff kit).
+  - "Destiny Diviner" — Black Swan (divination-card enhancements).
+  - "Beloved One", "Supreme Guardian", "Tutelar" — additional solo bonds
+    documented for specific characters (e.g. Bronya has two Bond forms).
+  (Names/availability vary by patch; verify in-game.)
+
+4.5 BOND TIER-LIST IMPRESSIONS (community, mixed sources — treat as opinion)
+* Strong/reliable: Energy (if committed, w/ Aglaea), Debuff, DoT (safest
+  all-trial line), Skill Points (near-broken with Sparkle/Sparxie),
+  Quantum Resonance (fast/easy to set up). [13][19]
+* Standout Faction bonds: Xianzhou, Day Demigod, Planet of Festivities,
+  Belobog. [13][22]
+* Situational/weaker: Break (needs Fugue + Firefly; harsh low floor),
+  Follow-Up ATK (high ceiling, low floor), Heal (utility), Bloodflame
+  (polarizing). [13][22]
+* Bond "core characters" (community consensus): Elation = Yao Guang;
+  Quantum = Seele; Break = Fugue; Express = Himeko • Nova; AoE = The Herta;
+  Skill Points = Sparkle; Debuff = Acheron/Mortenax Blade; DoT = Hysilens;
+  Follow-Up = Ashveil/Topaz. [23]
+
+================================================================================
+SECTION 5. INVESTMENT STRATEGIES & ENVIRONMENTS  [PRIORITY]
+================================================================================
+
+5.1 ENVIRONMENTS vs STRATEGIES [2][3][6]
+* INVESTMENT ENVIRONMENT: chosen ONCE at the START of a run (before combat).
+  Provides a run-long positive effect (economy, emblems, unit access, etc.).
+* INVESTMENT STRATEGY: chosen DURING a run, at designated nodes (typically the
+  first Combat Node of a Plane). Choose 1 of 3 offered to improve the run.
+  More Strategies can be collected as the run continues.
+* Both provide buffs for the whole match. Choosing HIGHER-RARITY strategies
+  INCREASES the difficulty of the run. [11]
+* Strategy Compendium: in-match help; recommends characters/equipment based on
+  your current board and highlights recommended store units + gear. [1][2]
+
+5.2 RARITY TIERS & DIFFICULTY SCALING [11]
+* Strategy rarities: SILVER (Common), GOLD, PRISMATIC.
+* Difficulty increase when picking: 0 (Silver), 1/3 (Gold), 3/6 (Prismatic)
+  — the numbers reflect added difficulty at A1-A6 / A7+. [11]
+* By default each rarity has a predetermined appearance chance; some
+  Environments/Strategies shift the rarity you may see. [11]
+* Notable Environments that set all strategies to one rarity:
+  - "The Rainbow Age" (a.k.a. "Rainbow Era"/"Age"): all your Investment
+    Strategies this run become PRISMATIC quality — higher risk (enemies scale
+    up), used for high-roll/flexible play. [11][22]
+  - "Gold Age": all strategies become GOLD. [11]
+  - "Silver Age": all strategies become SILVER and (importantly) picking
+    high-quality strategies no longer raises enemy difficulty — considered
+    very strong for STABLE clears. [11]
+
+5.3 INVESTMENT ENVIRONMENTS (list + effects; examples) [8][11][22][6]
+Categories observed:
+  - BOND INDEX FUNDS: one per bond, raise that bond's unit appearance rate
+    and/or grant the emblem. Examples:
+      * Energy Index Funds
+      * Day Demigod Index Funds
+      * Xianzhou Index Funds
+      * Wolf Hunt Index Funds
+      * Follow-Up ATK Index Funds
+      * Bloodflame Index Funds
+      * Express Cohort Index Funds
+      * Cosmic Scholar Index Funds
+      * Belobog Index Funds
+      * Galactic Voyager Index Funds
+      * Night Demigod Index Funds
+      * Break Index Funds
+      * AoE ATK Index Funds
+      * Debuff Index Funds
+  - BOND INVITATIONS: grant the corresponding Bond EMBLEM immediately.
+    Examples: "Express Cohort Invitation" -> Express Cohort Emblem; "Break's
+    Invitation"; "Energy's Invitation"; "DoT's Invitation"; "Quantum
+    Resonance's Invitation"; "Skill Point's Invitation"; etc. [8]
+  - CONTRACT environments: e.g. "DoT Contract", "Skill Point Contract",
+    "Stellaron Hunter Contract". [8]
+  - ECONOMY environments: gold-generation and interest boosters. Community
+    favorites: "Long-Term Gains" (roughly halves shop refresh cost — good in
+    all scenarios), "Economic Overheat/Hyperheat" (ton of rewards),
+    "Destiny's Gift" (unlockable before the first boss if you win all nodes;
+    grants Wealth Gem + more), "The Sunken Area" (extra gold). [22]
+  - TALENT/SHOP environments: "Downward Mobility of Talent" (shop can sell
+    2-star units), "Job Rotation", "Secondhand Market", "Download Mobility of
+    Talent". [17][14]
+  - SPECIAL-GUEST EXPERT environments: e.g. "Special Guest Expert: Sampo"
+    (adds Expert Advisor Sampo to the store; each new node Sampo brings a
+    gift; higher Sampo star = better gift). "Invitation to Holy Grail of
+    Destiny" (grants a Grail Emblem). "Contract of Holy Grail of Destiny"
+    (grants Rin Tohsaka + Gilgamesh, then Archer after 2 Grail rewards). [9]
+  - SP/Quantum special environments: "Skill Point Contract" (repeatedly grants
+    Dan Heng • Imbibitor Lunae, Sparkle, Sparxie for free) and a Quantum
+    environment that grants Fu Xuan/Seele when you level Sparkle/Tribbie (acts
+    as a gold source too). [19][22]
+  - Faction-boost environments like "Day Demigod Index Funds" that hand you
+    Aglaea/Tribbie/Roller Skates at the start — used to force-march the Aglaea
+    comp. [17]
+
+5.4 INVESTMENT STRATEGIES (list + effects; examples) [8][9]
+Selected documented Strategies (there are many; rarity in brackets):
+  - "Investment Level Up": raises the quality of your next Strategy by 1. [8]
+  - "It's A Wrap" [Prismatic]: disables all protagonists' "Plot Armor", gain
+    equal swaps. [9]
+  - "Intern Development Plan": gain Intern Projector; increases 1-cost
+    characters' On/Off-Field Strength. [9]
+  - "Gift of Twin Stars": obtain 2 random Emblems. [9]
+  - "Talent Bundle / Talent Bundle+": guaranteed 3-cost / 4-cost character
+    among gold handouts. [9]
+  - "Gold Investment": immediately choose one of three GOLD strategies, with
+    3 refreshes (extra refresh after 3 nodes). [8]
+  - "Silver Investment" / "Prismatic Futures" / "Gold Futures": choose one of
+    three Silver/non-refreshable/… Strategies after several nodes. [8]
+  - "Surplus Value": gain +1 Gold per 30 remaining Action Value at
+    finalization (up to 4). [8]
+  - "Special Ops Fund": gain 7 Gold when entering a node (economy). [8]
+  - "Struggle Protocol": buying EXP costs 6 Squad HP instead of Gold; restores
+    50 HP after boss fights (economy/sustain hybrid). [8]
+  - "Resolution: Planet of Entertainment": take double damage; if you hold
+    180-200 Gold when entering combat, convert remaining non-boss nodes into
+    Reward nodes and gain 50 Gold (greedy economy). [8]
+  - "Scale Management": raises max level cap and grants Wealth Gem + 40 Gold. [8]
+  - "Volley of Arrows": fires Wind arrows = squad total stars + X, each dealing
+    Wind DMG (damage scaling). [8]
+  - "Massive Layoffs": sell all on-field/prep characters for double Gold; gain
+    free refreshes. [8]
+  - "Empty Stock": gain basic equipment + EXP under conditions. [8]
+  - "Fusion Summon", "Complete Disassembly", "Perfect Evolution", "Rise Above
+    All", "Dominating Stats", "Endless Cycles", "Precise Demolition",
+    "Taking It Easy I/II/III", "Fortune's Favor", "Divine Aid", "Liquidate",
+    "Quid Pro Quo", "I Want It ALL: Silver/Gold/Prismatic", "Lucky..." etc. [8][9]
+  - Expert/Call strategies: "Call an Expert: Gold/Prismatic", "Celestial Jade
+    Expert: Qingque", "Trading Expert: Tingyun", "Expert Drinksmith:
+    Gallagher", "Advisor Gallagher", "Advisor Tingyun" (grant Expert
+    Advisors). [1][8]
+  - "Asta's Hellhound!" [Gold]: obtain a "Peppy" with "Gáe Bolg". [9]
+  - "Mystery of Furbosin Village", "Resignation Furbo-cedures": grant "furbo"
+    units/emblems (Wolf Hunt themed). [9]
+
+5.5 ECONOMY / "INVESTMENT" TACTICS (how to actually play the economy)
+This is the practical "investment strategy" layer players care about:
+* GOLD COIN SOURCES [3]:
+    - Winning battles
+    - Random reward boxes during a run
+    - Certain Investment Environments/Strategies
+    - INTEREST: +1 Gold for every 10 unspent Gold at the end of a battle,
+      up to +5 per battle (some early docs cap it at +3; newer at +5 at 50
+      Gold). This is the core "snowball" mechanic.
+    - Selling copies of characters
+* INTEREST BREAKPOINTS: Stash 30 Gold early for +3/round, and 50 Gold for the
+  max +5/round. "Slow-roll" = only spend Gold ABOVE the 50 threshold each
+  round. [3][17][19]
+* WIN STREAKS grant bonus Gold; maximizing consecutive wins is very
+  important. [17]
+* LEVELING vs ROLLING: Level determines team size and high-cost odds. Common
+  pattern: bank interest early (Planes 1), stabilize, then all-in roll at the
+  right level before the level penalty (e.g. finish a 3-star 1-cost BEFORE
+  hitting level 6, because low-cost odds drop). [17]
+* PIVOT/BRIDGE TEAMS (the "meta economy" trick): Use cheap, strong early bonds
+  to clear Plane 1 cheaply while banking interest, then sell/pivot into your
+  real comp. Documented bridge bonds: DoT (Asta+Sampo/Kafka, ~2 Gold, clears
+  Plane 1 ~70% of the time), "Xianzhou," and Express Cohort. Plane-1 HP
+  penalty is small, so losing a little HP is fine if it saves Gold. [19]
+* RESTART EARLY: Failing/abandoning a run does NOT cost rank, so if your shop
+  RNG is dead, restart rather than bleed HP. [3][17][23]
+* SELL RULES: sell price of starred units does NOT equal purchase cost — be
+  mindful. You can sell by click-holding a character and dragging to a Sell
+  button. [3][17]
+* Buy unwanted off-bench units to thin the pool and improve odds of your
+  target (a "pool-thinning" tactic). [17]
+
+5.6 RECOMMENDED ENVIRONMENT/STRATEGY PATHS PER ARCHETYPE (community guides) [17]
+(Buff/BitTopup/ldshop community builds; verify for current patch.)
+  - AGLAEA ("Wheelchair" Energy):
+      Strategy order: Loadout A -> Faster-Than-Light Promotion -> Small Copy
+      (a.k.a. "Tongue Twister"/"Gold Investment"/"Eidolon Ascension" alternates)
+      Environment: Energy Index Funds -> Download Mobility of Talent ->
+                   The Rainbow Age (or Day Demigod Index Funds to force it)
+      Items: 2x Anti-Grav Boots (from 4x Roller Skates) + Light Speed Propeller.
+      Goal: 3-star Aglaea by Level 5 (latest Level 6), bank 50 Gold, elevate.
+  - PHAINON (Deliverer/reflect):
+      Strategy: Probability Event -> Sufficient Principal -> Procurement
+                Specialist
+      Environment: Secondhand Market -> Job Rotation -> Rainbow Era
+      (Excess Budget "double supplies" is a strong alternative.)
+  - CASTORICE (Bloodflame):
+      Strategy: Fired Up -> Storm Knight -> Sufficient Principal
+      Environment: Fuel Concept Stocks -> Long-Term Bullish -> Rainbow Era
+      Items: Fist of Fury + Bloodthirsty + Decapitation.
+  - DOT:
+      Strategy: Sufficient Principal -> Strength in Numbers -> Procurement
+                Specialist
+      Environment: DoT Invitation -> DoT Contract -> Rainbow Era
+* General rules of thumb: prioritize Environment/Strategy picks that give
+  EQUIPMENT, ECONOMY (gold/interest), or EXTRA SHOP REFRESHES. Save ~30-50 Gold
+  early for max interest. [17][22]
+
+================================================================================
+SECTION 6. EQUIPMENT & CONSUMABLES
+================================================================================
+* Up to 3 Equipment per character. Obtained from Reward/Boss stages and events
+  (often as a chest; choosing one equipment from a list, or direct drops).
+  Drag to equip; unequip with the golden wrench; synthesize by dragging one
+  equipment onto another. [2]
+* BASIC EQUIPMENT (8 types, each = one stat): [6]
+    Roller Skates    — SPD Amplification: +5%
+    Folding Knife    — On-Field Strength: +10%
+    Peace Pistol     — Off-Field Strength: +10%
+    Lucky Star       — Lucky Strike Rate: +5%
+    Flower of Life   — HP Amplification: +5%
+    Batch Produced Armor — DMG Mitigation: +5%
+    Aether Drill     — Break Efficiency: +10%
+    Photon Cell      — Initial Energy: +15
+* ADVANCED EQUIPMENT: synthesize any 2 basic equipment. Keeps base stats and
+  adds a unique combat effect. Examples: [6][2]
+    High-frequency Chainsaw = Folding Knife + Lucky Star (big Lucky Strike for
+      on-field units)
+    Analgesia Chip = Flower of Life + Batch Produced Armor (heal target takes
+      reduced DMG)
+    Anti-Grav Boots (from Roller Skates) — stacks SPD (core Aglaea item)
+    Ring of Life = Flower of Life + Flower of Life
+    Wormhole Drill = Aether Drill + Aether Drill (Break Efficiency)
+    Perpetual Engine = Photon Cell + Photon Cell (energy)
+    Decapitation, Confidence Injector, Molecular Solvent, Victory Banner, etc.
+* PRIVILEGED EQUIPMENT: enhanced version of advanced equipment (same name),
+  stronger stats + effect. Upgrade via "Special Privilege Card". [6]
+* EMBLEMS: Bond Emblem equipment; equipping on a non-bond unit adds them to
+  that Bond (gains the buff + counts toward the Bond count). Crafted from
+  Red/Blue Gems + basic equipment. [5][6][8]
+* GEMS: RED GEM / BLUE GEM — rare synthesis mats. Combine gems to make Bond
+  Emblems, or combine 2 gems -> a WEALTH GEM. [6]
+* WEALTH GEM: very rare; increases team size limit by +1; while equipped also
+  grants Gold Coins over time. [6]
+* CONSUMABLES: [6]
+    Disassembly Wrench — remove all gear from a character (single use; a
+      "Precision" version is infinite).
+    Smelting Furnace — transform a piece of gear into a random piece of the
+      same type.
+    Staff Projector — copy a 3-cost-or-lower character (1-star) into prep.
+      ("Perfect Projector" copies any character.)
+    Good Fortune Token — choose 1 of the 4 recommended advanced equipment for a
+      character.
+    Special Privilege Card — upgrade an advanced equipment into its privileged
+      version (or upgrade one already worn).
+* Equipment tracking: recommended equipment is shown on each character card;
+  the compendium highlights recommended gear for a chosen strategy. [6][2]
+
+================================================================================
+SECTION 7. META TEAMS / ARCHETYPES (as documented)
+================================================================================
+NOTES: These are documented example comps; exact units/enablers shift by patch.
+[11][17][19][20]
+
+* AGLAEA ENERGY "WHEELCHAIR" (top-tier A8 clearer):
+    On-field: Aglaea, Sunday / (Welt/Cyrene in late A50), Cyrene, Hyacine
+    Off-field: Huohuo, Tingyun, Tribbie, Yunli/Saber, Remembrance Trailblazer
+    Key: 2x Anti-Grav Boots + Light Speed Propeller; Day Demigod + Energy bonds;
+    stack SPD -> ATK. Finish 3-star Aglaea by Lv5.
+* PHAINON DELIVERER (reflect/shield-counter):
+    On-field: Phainon, Sunday, Cyrene, Trailblazer (Ice/Remembrance)
+    Off-field: Cerydra, Robin, Gallagher, Permansor Terrae, Sparkle
+    Key: 2-3 "Chassis" items; Energy allies to spam his Ultimate.
+* BLOODFLAME CASTORICE:
+    On-field: Castorice, Cyrene, Bronya, Hyacine
+    Off-field: Blade/Mortenax Blade, Luocha, Jingliu, Tribbie, Mydei, Evernight
+    Key: HP consumers + Heal; Newbud generation; Bloodflame Arena AoE.
+* BREAK:
+    On-field: Boothill, Firefly, Rappa, Lingsha
+    Off-field: Himeko, Ruan Mei, Gallagher, Robin, Fugue, The Dahlia
+    Key: Wormhole Drill (Break Efficiency); Galaxy Ranger sub-bond for SPD;
+    Fugue enables double-bar Break.
+* DOlT (DoT) SQUAD (safest all-trial line):
+    Core: Kafka (engine), Hysilens (anchor), Asta, Jiaoqiu, Black Swan
+    Often paired with Debuff (Jiaoqiu/Mortenax Blade/Welt/Acheron/Yanqing).
+    Example: 6-DoT/4-Debuff or 6-Debuff/4-DoT at Lv9. [24]
+* SKILL POINT / QUANTUM (SPARXIE + SILVER WOLF):
+    On-field: Sparxie, Sparkle, Silver Wolf, Fu Xuan + Trailblazer (Remembrance)
+    Aim 4 Skill Points + 3 Quantum Resonance; spend SP -> Punchlines -> cash out
+    during "Aha Instant". Very strong/high-skill. [17][19]
+* EXPRESS COHORT:
+    Core: Himeko • Nova (Navigator copies a Trailblazer School Bond), Welt,
+    Sunday, March (Hunt), Imbibitor Lunae; Himeko as Expert Advisor.
+* FOLLOW-UP ARMY:
+    Topaz, Dr. Ratio, Aventurine, Robin (+Feixiao/Cipher/Ashveil).
+* STELLARON HUNTERS:
+    Firefly, Kafka, Mortenax Blade, Silver Wolf (+Silver Wolf Lv.999).
+
+================================================================================
+SECTION 8. SYMBOLS, TERMS & GLOSSARY
+================================================================================
+* Gold Coin: run currency for recruiting, EXP, shop refresh.
+* Interest: +1 Gold per 10 unspent at battle end (cap +5, sometimes +3 early).
+* Star Level: 1-3 promotion via 3 identical copies.
+* Cost/Rarity: 1 (Gray) ... 5 (Gold).
+* Position: On-Field / Off-Field / On-Off.
+* Empowerment: mode-exclusive kit per character.
+* Bond: faction/school/independent synergy tag; level scales with member count.
+* Emblem: equipment item that adds a bond membership to a unit.
+* Investment Environment: run-start buff choice.
+* Investment Strategy: mid-run buff choice (rarity scales enemy difficulty).
+* Squad HP: 100 start; losing battles costs HP; 0 = run over.
+* Plane / Node: 3 planes; Reward/Battle/Supply/Encounter/Boss nodes.
+* Gambit: Standard (rank climb) vs Overclock (short, no rank, farm points).
+* Rank: A0 Black Iron ... A8 Wealth Creator.
+* Wealth Gem: +1 team size.
+* Expert Advisor: special unlockable crew (v4.0+).
+* Strategy Compendium: in-game recommendation helper.
+
+================================================================================
+SECTION 9. SOURCES
+================================================================================
+[1]  Icy Veins — "Currency Wars Guide and Rewards" (updated ~Sep 2026)
+     https://www.icy-veins.com/honkai-star-rail/currency-wars
+[2]  Prydwen — "Currency Wars" guide
+     https://www.prydwen.gg/star-rail/guides/currency-wars
+[3]  Prydwen (same page, team management / gameplay sections)
+     https://www.prydwen.gg/star-rail/guides/currency-wars
+[4]  Icy Veins — "Currency Wars Bonds Guide" (updated ~Sep 14, 2026)
+     https://www.icy-veins.com/honkai-star-rail/currency-wars-bonds
+[5]  Beebom — "HSR Currency Wars Guide: Best Characters, Tips and Tricks"
+     https://beebom.com/hsr-currency-wars-guide-best-characters-tips-and-tricks/
+[6]  Fandom — "Currency Wars: Zero-Sum Game" (overview, equipment, rewards)
+     https://honkai-star-rail.fandom.com/wiki/Currency_Wars:_Zero-Sum_Game
+     Fandom — Equipment page
+     https://honkai-star-rail.fandom.com/wiki/Currency_Wars:_Zero-Sum_Game/Equipment
+[7]  HoYoverse HoYoLAB — "Currency Wars Highlights Page" (Himeko Nova,
+     Rin Tohsaka, Gilgamesh, Holy Grail of Destiny, adjustments)
+     https://act.hoyolab.com/puzzle/hkrpg/pz_RlVztEGUpN/index.html
+[8]  Fandom — "Currency Wars: Zero-Sum Game/Investment Strategy"
+     https://honkai-star-rail.fandom.com/wiki/Currency_Wars:_Zero-Sum_Game/Investment_Strategy
+     Fandom — "Investment Environment"
+     https://honkai-star-rail.fandom.com/wiki/Currency_Wars:_Zero-Sum_Game/Investment_Environment
+[9]  Reddit r/CurrencyWarsHSR / r/HonkaiStarRail_leaks — "All New Investment
+     Strategies and Environments" / "Compilation of Currency Wars New
+     Investments 4.4 via nanoka"
+     https://www.reddit.com/r/CurrencyWarsHSR/comments/1wtwpq4/
+     https://www.reddit.com/r/HonkaiStarRail_leaks/comments/1uie2p4/
+[10] enjoygm — "HSR 4.4 Currency Wars Update Guide" (Navigator, Holy Grail)
+     https://www.enjoygm.com/blog/honkai-star-rail/4-4-currency-wars-update-guide
+[11] Fandom Investment Strategy + note.com "Money Wars Ver 4.0 Investment
+     Environment Tier List" (Silver/Gold/Rainbow Age)
+     https://note.com/dowaoshark/n/nf3e2b3866457
+[12] Gachabase — "Planes and Nodes" tutorial
+     https://hsr.gachabase.net/tutorials/currency-wars/100036/planes-and-nodes/
+[13] ldshop — "Currency Wars Best Bond Tier List" and related
+     https://www.ldshop.gg/blog/honkai-star-rail/currency-wars-bond-tier-list.html
+[14] Fandom — "Currency Wars: Zero-Sum Game/Characters"
+     https://honkai-star-rail.fandom.com/wiki/Currency_Wars:_Zero-Sum_Game/Characters
+[15] Game8 — "Currency Wars Gameplay Guide" / "Currency Wars Game Mode v4.2"
+     https://game8.co/games/Honkai-Star-Rail/archives/550753
+[16] Reddit r/HonkaiStarRail — "Currency Wars Gameplay Guide" (Xanek)
+     https://www.reddit.com/r/HonkaiStarRail/comments/1on1iy7/currency_wars_gameplay_guide/
+     Also Gachabase "Form Team" tutorial
+     https://hsr.gachabase.net/tutorials/currency-wars/100011/form-team/
+[17] Buff/BitTopup/ldshop community build guides (Aglaea/Phainon/Castorice DoT)
+     https://buffbuff.com/blog/hsr-currency-war-best-team
+     https://bittopup.com/article/Honkai-Star-Rail-Currency-Wars-v37-4000-Jades-A8-Teams-Guide
+     https://www.ldshop.gg/blog/honkai-star-rail/currency-wars-best-teams.html
+[18] YouTube "Brand NEW Game Mode! Currency Wars 3.7 Gameplay & Review"
+     (Guoba Certified) - empowerment examples
+     https://www.youtube.com/watch?v=hy9ZEQaQe80
+[19] YouTube "The Most Broken Strategies in Currency Wars" (Yuniquely) +
+     earlier "Currency War FULL Guide" (Ruri Goko)
+     https://www.youtube.com/watch?v=EA7a3iz3oc0
+     https://www.youtube.com/watch?v=XUFzOfJlyF4
+[20] Game8 / gacha.gg / gachafocus — HSR Version 4.6 (release & schedule)
+     https://game8.co/games/Honkai-Star-Rail/archives/614847
+     https://www.gacha.gg/honkai-star-rail/banners
+[21] Reddit r/HonkaiStarRail — "My Personal Tier List ... Currency Wars"
+     https://www.reddit.com/r/HonkaiStarRail/comments/1p1l3el/
+[22] ldshop — "Best Teams to Cruise A8-30" (Aglaea/Sparxie paths)
+     https://www.ldshop.gg/blog/honkai-star-rail/currency-wars-best-teams.html
+[23] Reddit r/CurrencyWarsHSR — "Who is the most important character for each
+     bond?" / "Bond Tier List"
+     https://www.reddit.com/r/CurrencyWarsHSR/comments/1v9pr7v/
+     https://www.reddit.com/r/CurrencyWarsHSR/comments/1tw68ej/
+[24] Reddit r/CurrencyWarsHSR — "DoT runs for high-rank Currency Wars"
+     https://www.reddit.com/r/CurrencyWarsHSR/comments/1wcqxu6/
+
+================================================================================
+SECTION 10. OPEN QUESTIONS / GAPS TO VERIFY (before implementing the remake)
+================================================================================
+1. EXACT current (v4.6) roster and costs, per rarity — sources conflict across
+   versions. Must pull from the in-game Data Bank for a canonical list.
+2. EXACT Bond activation thresholds per Bond (e.g. 4/6/8/9/10) for the current
+   patch, and the full per-level effect text for each Bond.
+3. Full numeric values for every Investment Strategy / Environment (only a
+   sample is documented; the Fandom wiki has partial tables).
+4. Full advanced/privileged equipment table (names, formulas, exact effects).
+5. Star-level stat curves per character (HP Amp, On/Off-Field Strength, SPD
+   Amp, Healing Strength, Shield Strength) — only a couple of examples found
+   (Blade, Evanescia). [14]
+6. Enemy/boss list ("Face Competitors") and node difficulty/affix values.
+7. Whether the next update (post-4.6) removes/rotates specific bonds
+   (community expects character rotation every couple of patches).
+8. Localization/name differences ("Rainbow Age" vs "Rainbow Era"; "AoE"/"Range
+   Attack"; "Bloodflame"/"HP Consumption"; Korean/CN fan-wiki naming).
+
+--------------------------------------------------------------------------------
+END OF FILE
+--------------------------------------------------------------------------------
