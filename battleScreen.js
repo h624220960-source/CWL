@@ -37,6 +37,13 @@
   var ultOverlay = document.getElementById("ultOverlay");
   var ultCaptionName = document.getElementById("ultCaptionName");
   var ultCaptionSkill = document.getElementById("ultCaptionSkill");
+  var battleWave = document.getElementById("battleWave");
+  var battleProgressFill = document.getElementById("battleProgressFill");
+  var battleProgressText = document.getElementById("battleProgressText");
+  var battleSquadHp = document.getElementById("battleSquadHp");
+  var battleGold = document.getElementById("battleGold");
+  var battleBondList = document.getElementById("battleBondList");
+  var battleHeader = document.getElementById("battleHeader");
 
   var battle = null;
   var selectedTargetUid = null;
@@ -50,6 +57,10 @@
   var cinematicActive = false;
   var cinematicUnitUid = null;
   var cinematicTimer = null;
+  var runMode = false;
+  var runOnEnd = null;
+  var resultDelivered = false;
+  var currentConfig = null;
 
   function esc(value) {
     return String(value)
@@ -140,7 +151,7 @@
     if (unit.characterId === "qingque") {
       return "Tiles " + unit.tiles + "/4 · Temp SP " + unit.tempSp;
     }
-    return "On-Field";
+    return unit.position === "off" ? "Support" : "On-Field";
   }
 
   function enemyResourceText(unit) {
@@ -163,6 +174,12 @@
     var active = isPlayer && state.waitingForPlayer === unit.uid;
     var ready = isPlayer && unit.ultReady;
     var classes = "unit-circle-wrap " + (isPlayer ? "player" : "enemy");
+    if (isPlayer) {
+      classes += " pos-" + unit.position;
+    }
+    if (!isPlayer && unit.boss) {
+      classes += " boss";
+    }
 
     if (selected) {
       classes += " selected";
@@ -184,9 +201,11 @@
     var below = isPlayer
       ? barMarkup("Energy", unit.energy, unit.maxEnergy, "unit-bar-energy")
       : barMarkup("Toughness", unit.toughness, unit.maxToughness, "unit-bar-toughness");
-    var hotkey = isPlayer ? "<span class='unit-hotkey'>" + unit.slot + "</span>" : "";
+    var hotkey = isPlayer && unit.position === "on"
+      ? "<span class='unit-hotkey'>" + unit.slot + "</span>"
+      : "";
     var status = isPlayer
-      ? (unit.supremeStance ? "Supreme Stance" : (active ? "Acting" : (ready ? "Ult ready" : "On-Field")))
+      ? (unit.supremeStance ? "Supreme Stance" : (active ? "Acting" : (ready ? "Ult ready" : (unit.position === "off" ? "Off-Field" : "On-Field"))))
       : (unit.broken ? "Broken" : "Enemy");
 
     return (
@@ -458,7 +477,11 @@
   }
 
   function actionMeta(characterId, actionId, action) {
-    var kit = DATA.byId(characterId).combat;
+    var character = DATA.byId(characterId);
+    var kit = character ? character.combat : null;
+    if (!kit) {
+      return "Generic action";
+    }
     if (characterId === "aglaea") {
       if (actionId === "basic") {
         return action && action.name === kit.basic.enhanced.name
@@ -474,8 +497,20 @@
       return Math.round(kit.basic.multiplier * 100) + "% ATK · +" + kit.basic.spGain + " SP";
     }
     if (actionId === "skill") {
+      if (kit.skill.type === "buff") {
+        return "Squad DMG buff · -" + (kit.skill.spCost || 0) + " SP";
+      }
+      if (kit.skill.type === "shield") {
+        return "Squad Shield · -" + (kit.skill.spCost || 0) + " SP";
+      }
+      if (kit.skill.type === "heal") {
+        return "Squad heal · -" + (kit.skill.spCost || 0) + " SP";
+      }
       return Math.round(kit.skill.multiplier * 100) + "% ATK · -" + kit.skill.spCost +
         " SP" + (kit.skill.selfSpdBuff ? " · +" + kit.skill.selfSpdBuff.amount + " SPD" : "");
+    }
+    if (kit.ultimate.type) {
+      return "Squad support · " + kit.ultimate.energyCost + " Energy";
     }
     return Math.round(kit.ultimate.multiplier * 100) + "% ATK · " +
       (kit.ultimate.targets === "all" ? "All enemies" : "Single target") +
@@ -484,7 +519,15 @@
 
   function fallbackActionsFor(unit) {
     var characterId = unit ? unit.characterId : PARTY[0];
-    var kit = DATA.byId(characterId).combat;
+    var character = DATA.byId(characterId);
+    var kit = character && character.combat ? character.combat : null;
+    if (!kit) {
+      return [
+        { id: "basic", name: "Basic ATK", available: false, needsTarget: true },
+        { id: "skill", name: "Skill", available: false, needsTarget: true },
+        { id: "ultimate", name: "Ultimate", available: false, needsTarget: false }
+      ];
+    }
     return [
       { id: "basic", name: kit.basic.name, available: false, needsTarget: true },
       { id: "skill", name: kit.skill.name, available: false, needsTarget: kit.skill.type !== "summon" },
@@ -525,9 +568,9 @@
     if (hintOverride) {
       battleHint.textContent = hintOverride;
     } else if (state.status === "victory") {
-      battleHint.textContent = "Victory. Restart to run the sandbox again.";
+      battleHint.textContent = runMode ? "Victory. Returning to the run..." : "Victory. Restart to run the sandbox again.";
     } else if (state.status === "defeat") {
-      battleHint.textContent = "Defeat. The Action Value limit was reached.";
+      battleHint.textContent = runMode ? "Defeat. Returning to the run..." : "Defeat. The Action Value limit was reached.";
     } else if (!isPlayerTurn) {
       battleHint.textContent = state.turnOrder.length && state.turnOrder[0].side === "enemy"
         ? "Enemy turn. You can still press 1-4 to use a ready Ultimate."
@@ -607,6 +650,45 @@
     render();
   }
 
+
+  function renderBattleTop(state) {
+    if (battleWave) {
+      battleWave.textContent = (currentConfig && currentConfig.label) || "1-1";
+    }
+    if (battleProgressFill) {
+      battleProgressFill.style.width = percent(state.elapsedAV, state.turnLimitAV) + "%";
+    }
+    if (battleProgressText) {
+      battleProgressText.textContent = formatNumber(state.elapsedAV) + " / " + state.turnLimitAV + " AV";
+    }
+    if (battleSquadHp) {
+      battleSquadHp.textContent = currentConfig && currentConfig.squadHp !== undefined ? currentConfig.squadHp : 100;
+    }
+    if (battleGold) {
+      battleGold.textContent = currentConfig && currentConfig.gold !== undefined ? currentConfig.gold : 0;
+    }
+  }
+
+  function renderBondPanel(state) {
+    if (!battleBondList) {
+      return;
+    }
+    var entries = state.bondDamage || [];
+    if (!entries.length) {
+      battleBondList.innerHTML = "<p class='muted cw-rail-empty'>No Bond DMG</p>";
+      return;
+    }
+    var max = entries[0].amount || 1;
+    battleBondList.innerHTML = entries.slice(0, 6).map(function (entry) {
+      return "<div class='cw-bond-dmg-row'>" +
+        "<span class='cw-bond-dmg-icon'>" + esc(entry.name.slice(0, 2).toUpperCase()) + "</span>" +
+        "<div class='cw-bond-dmg-info'><strong>" + esc(entry.name) + "</strong>" +
+        "<span>" + formatNumber(entry.amount) + "</span></div>" +
+        "<i style='width:" + Math.max(6, Math.round((entry.amount / max) * 100)) + "%'></i>" +
+        "</div>";
+    }).join("");
+  }
+
   function render() {
     if (!battle) {
       return;
@@ -620,8 +702,19 @@
     if (state.status !== "active") {
       stopAuto();
       stopEnemyTimer();
+      if (runMode && runOnEnd && !resultDelivered) {
+        resultDelivered = true;
+        var finalState = state;
+        setTimeout(function () {
+          if (runOnEnd) {
+            runOnEnd(finalState);
+          }
+        }, 900);
+      }
     }
 
+    renderBattleTop(state);
+    renderBondPanel(state);
     renderHud(state);
     renderTurnOrder(state);
     renderEnemies(state);
@@ -656,7 +749,8 @@
 
     var character = DATA.byId(unit.characterId);
     var meta = elementMeta(unit.element);
-    var abilities = character.slots.on.abilities;
+    var slotKit = character.slots[unit.position] || character.slots.on || character.slots.off;
+    var abilities = slotKit.abilities;
     var resources = [
       { label: "Energy", value: unit.energy + " / " + unit.maxEnergy }
     ];
@@ -737,7 +831,7 @@
       }).join("") +
       "</div>" +
       "<div class='empower'><span class='empower-tag'>CW Empowerment</span><p>" +
-      esc(character.slots.on.empowerment) + "</p></div>" +
+      esc(slotKit.empowerment) + "</p></div>" +
       "<p class='lab-note'>Stats show the current battle values, including buffs and Golden Threads. Press 1-4 to use this character's Ultimate when it is ready.</p>";
   }
 
@@ -939,7 +1033,7 @@
     }
   }
 
-  function startNewBattle() {
+  function startNewBattle(config) {
     stopAuto();
     stopEnemyTimer();
     stopCinematics();
@@ -948,18 +1042,45 @@
     hintOverride = "";
     lastDamageVersion = {};
     lastDamageEventId = 0;
-    battle = Combat.createBattle({
+    resultDelivered = false;
+    var battleOptions = config || {
       party: PARTY,
       enemies: ENEMIES,
       seed: Math.floor(Math.random() * 100000) + 1,
       turnLimitAV: TURN_LIMIT_AV,
-      infiniteEnemyHp: true
-    });
+      infiniteEnemyHp: true,
+      label: "Sandbox",
+      squadHp: 100,
+      gold: 0
+    };
+    currentConfig = battleOptions;
+    battle = Combat.createBattle(battleOptions);
     render();
   }
 
   function open() {
+    runMode = false;
+    runOnEnd = null;
+    screen.classList.remove("run-battle");
+    battleBack.hidden = false;
+    battleRestart.hidden = false;
+    if (battleHeader) {
+      battleHeader.hidden = false;
+    }
     startNewBattle();
+    CW.showScreen(screen);
+  }
+
+  function openRun(config, onEnd) {
+    runMode = true;
+    runOnEnd = onEnd || null;
+    screen.classList.add("run-battle");
+    battleBack.hidden = true;
+    battleRestart.hidden = true;
+    if (battleHeader) {
+      battleHeader.hidden = true;
+    }
+    startNewBattle(config);
     CW.showScreen(screen);
   }
 
@@ -968,6 +1089,9 @@
     stopEnemyTimer();
     stopCinematics();
     closeStats();
+    if (runMode) {
+      return;
+    }
     CW.showScreen("screen-modes");
   }
 
@@ -1015,7 +1139,11 @@
     }
   });
 
-  battleRestart.addEventListener("click", startNewBattle);
+  battleRestart.addEventListener("click", function () {
+    if (!runMode) {
+      startNewBattle();
+    }
+  });
   battleBack.addEventListener("click", back);
   statsClose.addEventListener("click", closeStats);
   statsOverlay.addEventListener("click", function (event) {
@@ -1049,7 +1177,12 @@
 
   window.CWBattle = {
     open: open,
-    restart: startNewBattle,
+    openRun: openRun,
+    restart: function () {
+      if (!runMode) {
+        startNewBattle();
+      }
+    },
     getState: function () {
       return battle ? battle.getState() : null;
     }

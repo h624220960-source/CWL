@@ -1,26 +1,52 @@
 # CurrencyWarsLegacy
 
-A browser-based website. Plain HTML, CSS, and JavaScript — no build step, works in any modern browser.
+A browser remake of Honkai: Star Rail's **Currency Wars: Zero-Sum Game** (4.6 season snapshot). Plain HTML, CSS, and JavaScript — no build step, works in any modern browser.
 
 ## Status
 
-The prototype combat sandbox has been retired and is being rebuilt. The current build ships a Character Lab for browsing implemented kits, elements and On/Off-Field statuses.
+**Standard Gambit is playable as a vertical slice.** Choose an Investment Environment, then clear three planes (Reward, Battle, Supply, Encounter, Boss). The run includes:
 
-Combat v0.2 is playable in the **Combat Sandbox**: Aglaea, Firefly, Feixiao and Qingque vs three **infinite-HP** Debt Collectors in a **2000 AV** test run (about 20 turns at 100 SPD). Characters are circular element-coloured portraits with HP bars above and Energy/Toughness bars below. A left-side Turn Order panel forecasts the next 10 actions, damaged units flash red, floating numbers show CRIT and Lucky Strike damage, clicking an enemy targets it, clicking an ally opens stats, and 1-4 use ready Ultimates at any time. Ultimates trigger a spotlight cinematic that pauses the turn timers. Aglaea's Remembrance memosprite, Garmentmaker, is a full unit with its own HP, turn and a small HP-bar circle next to her. The four combat characters' archive kits now use their real HSR names/effects; full combat parity for Firefly, Feixiao and Qingque is still in progress. The rules are in `docs/combat-spec.md`.
+- 4 On-Field / 6 Off-Field deployment with position-locked kits.
+- Gold, interest, win streaks, EXP/level, team size and shop odds.
+- A 5-slot shop with rerolls, buy/sell, bench, and 3-copy merging through 3-star.
+- Basic equipment drops, equip/unequip, and combat stat effects.
+- Bond activation from deployed characters (combat effects wired for Energy, DoT, Break, Follow-Up, Day Demigod, Heal and Shield).
+- Investment Strategies and Environments with documented effects.
+- Squad HP, per-node battle limits, node rewards, and a C–SSS rating.
+
+The board UI follows Prydwen's Currency Wars captures: preparation board, shop/odds/Bonds rail, Investment Environment cards, and a combat HUD with turn order, Bond DMG and party bars.
+
+The **Combat Sandbox** (infinite-HP test run) and **Character Lab** remain available as dev tools. The Itinerary codex is data-driven from the 4.6 snapshot.
+
+### Exactness
+
+The 4.6 season has rotated out, so the remake uses archived 4.6 sources. Every entry in `data/cw-4.6.js` carries a provenance flag:
+
+- `verified` — captured from the 4.6 game/Data Bank.
+- `documented` — stated in the 4.6 research snapshot (`INIT.txt`).
+- `placeholder` — remake value, not official. Replace when verified data is available.
+
+Numeric effects that the snapshot does not contain are marked `placeholder`. Characters without an authored kit receive a generic slice profile (clearly not 4.6 parity) so the run stays playable while kits are ported.
 
 ## Files
 
 - `index.html` — markup
 - `style.css` — styles
-- `script.js` — username, mode selection and Itinerary
-- `characters.js` — character kit data
-- `combat.js` — headless combat engine and generic enemies
-- `battleScreen.js` — Combat Sandbox rendering and controls
+- `data/cw-4.6.js` — canonical dataset: Bonds, equipment, enemies, run tables, Strategies, Environments
+- `script.js` — username, mode selection and Itinerary codex
+- `characters.js` — character kit data (27 implemented)
+- `combat.js` — headless combat engine (On/Off-Field, Bonds, equipment, stars, enemies)
+- `run.js` — headless run engine (economy, shop, merge, deployment, nodes, rating)
+- `battleScreen.js` — combat rendering, sandbox and run battles
+- `runScreen.js` — Standard Gambit map, shop, squad, overlays
 - `characterLab.js` — Character Lab rendering
 - `docs/character-research.md` — kit, element and positioning research
 - `docs/combat-spec.md` — combat rules for the rebuild
-- `tools/simulate.js` — prints a sample battle log
+- `docs/ui-reference.md` — Prydwen UI layout notes and remake mapping
+- `tools/validate-data.js` — dataset integrity checks
+- `tools/run-test.js` — seeded full-run tests
 - `tools/combat-test.js` — engine smoke tests
+- `tools/simulate.js` — prints a sample battle log
 - `CHANGELOG.md` — change log
 
 ## Run locally
@@ -33,9 +59,11 @@ python -m http.server 8000
 
 Then visit http://localhost:8000
 
-## Combat tools
+## Tools
 
 ```sh
+node tools/validate-data.js
+node tools/run-test.js
 node tools/combat-test.js
 node tools/simulate.js
 ```

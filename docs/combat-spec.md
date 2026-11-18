@@ -1,33 +1,35 @@
-# Combat Spec v0.2
+# Combat Spec v0.3
 
-Combat model for the remake. This is a documented simplification of Currency Wars, not a reverse-engineered copy of the live game's formulas. All numbers are remake templates.
+Combat model for the remake. This is a documented simplification of Currency Wars, not a reverse-engineered copy of the live game's formulas. Values marked `placeholder` in `data/cw-4.6.js` are remake numbers.
 
 ## 1. Scope
 
-The current playable slice is:
+The current playable layer is:
 
-- 4 On-Field characters: **Aglaea**, **Firefly**, **Feixiao** and **Qingque**.
-- 3 generic enemies that only attack a single target.
-- A playable Combat Sandbox with circular portraits, target selection, stats popovers, an auto-play toggle and 1-4 Ultimate hotkeys.
-- No Off-Field units, Bonds, equipment, shop, stars or run layer yet.
+- **Standard Gambit run slice**: Environment choice, three planes, Gold/EXP/shop/merge, deployment, Bonds, basic equipment and a C-SSS rating.
+- **Up to 4 On-Field / 6 Off-Field** deployed characters. Off-Field units are untargetable and take automatic support/attack turns.
+- Combat Sandbox and Character Lab as dev tools.
+- 27 implemented characters; 9 have authored combat kits. Other characters use a generic slice profile until ported.
+- Four enemy templates: Debt Collector, IPC Enforcer, Rival Broker and Auction Overseer.
+- Bonds with wired combat effects: Energy, DoT, Break, Follow-Up ATK, Day Demigod, Heal and Shield. Remaining Bonds are documented but not yet wired.
 
-The engine is structured so Off-Field units and more content can be added later.
+The data layer lives in `data/cw-4.6.js`. The run layer lives in `run.js`.
 
 ## 2. Battle setup
 
 A battle contains:
 
-- **Player party**: up to 4 On-Field units. Only On-Field units are targetable. The active unit acts on player input; other On-Field units can still use ready Ultimates as free actions.
-- **Enemies**: 1 or more units. Generic enemies use a single-target Basic ATK.
+- **Roster**: up to 4 On-Field and 6 Off-Field units. On-Field units are targetable and act on player input; Off-Field units are untargetable and resolve automatic turns.
+- **Enemies**: 1 or more units. Enemies use a Basic ATK and may have a cooldown skill.
 - **Turn limit**: an Action Value budget. If the budget runs out before all enemies die, the player loses the battle.
 
 Position rules from the mode research still apply:
 
 - On-Field units are targetable, can attack, and act on player input.
-- Off-Field units are untargetable, act automatically, and default to support actions.
-- A character in the wrong position loses its CW Empowerment.
+- Off-Field units are untargetable, act automatically, and use support actions based on their role (`healer`, `buffer`, `debuff`, `shield` or `attacker`).
+- A character deployed in the wrong area loses its CW Empowerment. The run enforces valid positions during deployment.
 
-Off-Field is out of scope for v0.2 but the engine exposes a `position` field.
+Deployment limits: 4 On-Field / 6 Off-Field, with total team size capped by the run's level.
 
 ## 3. Turn order
 
@@ -150,7 +152,7 @@ Durations are measured in the affected unit's own turns. A buff applied during t
 - Each revive adds 200 AV to the elapsed total, representing the lost turn limit.
 - Revives do not reset Energy, buffs or Golden Thread.
 
-## 8. Characters v0.2
+## 8. Characters v0.3
 
 ### Aglaea
 
@@ -240,6 +242,10 @@ Base stats: HP 1020, ATK 640, DEF 390, SPD 104. Element: Quantum.
 
 Generic enemies use the same stat and damage model as player units.
 
+### Enemy templates
+
+`data/cw-4.6.js` defines Debt Collector, IPC Enforcer, Rival Broker and Auction Overseer. The first three are fielded by the run; the Auction Overseer is the plane boss. Stats and skills are placeholders until verified 4.6 values are recovered.
+
 ### Debt Collector
 
 - HP 2400, ATK 200, DEF 250, SPD 95.
@@ -263,20 +269,20 @@ Enemy AI:
 - The current sandbox has infinite-HP enemies, so it always ends in defeat at exactly 2000 AV.
 - A single character reviving repeatedly cannot stall forever because each revive costs 200 AV.
 
-## 11. Out of scope for v0.2
+## 11. Out of scope for v0.3
 
-- Off-Field automation
-- Bonds and Emblems
-- Equipment
-- Star levels and merging
-- Shop, Gold and EXP
-- Multiple Planes and nodes
+- Emblems, Gems and Wealth Gem
+- Advanced/Privileged equipment synthesis and Consumables
+- Expert Advisors and their unlock Environments/Strategies
+- Overclock Gambit, rank progression and saved runs
+- Full Bond effects for Xianzhou, Wolf Hunt, Express Cohort, Bloodflame, Elation, Debuff, Skill Points and the remaining factions/schools
 - Effect Hit Rate and Effect RES
-- Shields, cleanses and non-Burn DoTs
+- Cleanses, and DoT application to player units
 - The exact live-game Ultimate timing rules
 - Firefly's automatic Ultimate after 3 Weakness Breaks
 - Feixiao's automatic Ultimate at 6 Flying Rays (the remake fills Energy instead)
 - Aglaea's Seam Stitch and Garmentmaker SPD-stack talent
+- Full 4.6 kits for characters still using the generic slice profile
 
 ## 12. Combat Sandbox UI
 
@@ -303,3 +309,23 @@ Enemy AI:
 4. What is the official behavior when every deployed unit is Off-Field?
 5. How much of the live game's hidden damage formula should be approximated?
 6. Do we want automatic Ultimate triggers for Firefly and Feixiao, or should the player always spend the ready Ultimate manually?
+
+## 14. Run integration (v0.3)
+
+`run.js` builds a battle configuration and hands it to `battleScreen.js`:
+
+```js
+{
+  roster: [{ id, position, star, equipment: [] }],
+  enemies: ["debtCollector", ...],
+  bonds: [{ id, level }],
+  turnLimitAV, difficulty, seed
+}
+```
+
+- `difficulty` scales enemy HP/ATK/DEF by plane and encounter choice.
+- `bonds` carries only implemented Bonds at their activated level.
+- `star` multiplies base stats using `run.starMultipliers`.
+- `equipment` applies HP%, SPD%, Lucky Rate, initial Energy, DMG reduction, Break Efficiency and On/Off-Field DMG.
+- On victory the run grants Gold, interest, EXP and equipment; on defeat it removes Squad HP. When Squad HP reaches 0 the run ends.
+- The combat engine never mutates run state directly; `run.finishBattle(result)` applies the outcome.

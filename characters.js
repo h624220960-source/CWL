@@ -1,4 +1,10 @@
-(function () {
+(function (root, factory) {
+  if (typeof module === "object" && module.exports) {
+    module.exports = factory();
+  } else {
+    root.CW_CHARACTERS = factory();
+  }
+})(typeof globalThis !== "undefined" ? globalThis : this, function () {
   "use strict";
 
   var ELEMENTS = {
@@ -674,6 +680,231 @@
           ]
         }
       }
+    },
+    {
+      id: "kafka",
+      name: "Kafka",
+      cost: 2,
+      element: "Lightning",
+      path: "Nihility",
+      position: "off",
+      bonds: ["Stellaron Hunters", "DoT"],
+      stats: { hp: 1080, atk: 620, def: 420, spd: 100 },
+      combat: {
+        role: "debuff",
+        maxEnergy: 100,
+        startEnergy: 50,
+        basic: { name: "Midnight Tumult", multiplier: 0.5, targets: 1, energyGain: 20, spGain: 1, toughnessDamage: 20 },
+        skill: {
+          name: "Detonate",
+          multiplier: 1.1,
+          targets: 1,
+          energyGain: 30,
+          spCost: 1,
+          toughnessDamage: 20,
+          dot: { type: "Shock", multiplier: 0.7, turns: 2, element: "Lightning" }
+        },
+        ultimate: {
+          name: "Twilight Trill",
+          multiplier: 1.6,
+          targets: "all",
+          energyCost: 100,
+          toughnessDamage: 20,
+          dot: { type: "Shock", multiplier: 0.8, turns: 2, element: "Lightning" }
+        },
+        talent: { dotDmgPct: 0.25 },
+        empowerment: { followUpMultiplier: 0.5 }
+      },
+      note: "Position-locked. Off-Field Kafka is the DoT engine: her shocks spread and detonate for the DoT and Debuff schools.",
+      slots: {
+        off: {
+          empowerment: "DoT Contract (Currency Wars): Kafka's Shock effects also count as a Debuff, and when a shocked enemy acts it spreads Shock to one adjacent enemy.",
+          abilities: [
+            { slot: "Basic ATK", name: "Midnight Tumult", text: "Deals 50% ATK Lightning DMG to one enemy." },
+            { slot: "Skill", name: "Detonate", text: "Deals 110% ATK Lightning DMG to one enemy and applies Shock for 2 turns." },
+            { slot: "Ultimate", name: "Twilight Trill", text: "Deals 160% ATK Lightning DMG to all enemies and applies Shock for 2 turns." },
+            { slot: "Talent", name: "Gentle Words", text: "Kafka's DoT DMG is increased by 25%. Shock effects she applies can stack." }
+          ]
+        }
+      }
+    },
+    {
+      id: "ruanmei",
+      name: "Ruan Mei",
+      cost: 2,
+      element: "Ice",
+      path: "Harmony",
+      position: "off",
+      bonds: ["Break", "Cosmic Scholar"],
+      stats: { hp: 1100, atk: 570, def: 470, spd: 104 },
+      combat: {
+        role: "buffer",
+        maxEnergy: 120,
+        startEnergy: 60,
+        basic: { name: "Threading Fragrance", multiplier: 0.5, targets: 1, energyGain: 20, spGain: 1, toughnessDamage: 20 },
+        skill: {
+          name: "String Sings Slow Swirls",
+          type: "buff",
+          buff: { dmgPct: 0.15, breakEffect: 0.10, turns: 2 },
+          energyGain: 30,
+          spCost: 1
+        },
+        ultimate: {
+          name: "Petals to Stream, Repose in Dream",
+          type: "buff",
+          buff: { dmgPct: 0.25, breakEffect: 0.15, turns: 2 },
+          energyCost: 120
+        },
+        talent: { breakEffect: 0.2 },
+        empowerment: { breakEfficiency: 0.10 }
+      },
+      note: "Position-locked. Off-Field Ruan Mei is the Break enabler who buffs DMG and Break Effect for the whole squad.",
+      slots: {
+        off: {
+          empowerment: "Break Aria (Currency Wars): Ruan Mei's buffs also grant 10% Break Efficiency, and Weakness-Broken enemies stay Broken for one extra turn.",
+          abilities: [
+            { slot: "Basic ATK", name: "Threading Fragrance", text: "Deals 50% ATK Ice DMG to one enemy." },
+            { slot: "Skill", name: "String Sings Slow Swirls", text: "All allies gain +15% DMG and +10% Break Effect for 2 turns." },
+            { slot: "Ultimate", name: "Petals to Stream, Repose in Dream", text: "All allies gain +25% DMG and +15% Break Effect for 2 turns." },
+            { slot: "Talent", name: "Somatotypical Helix", text: "Ruan Mei's Break Effect is increased by 20%; allies deal more Break DMG." }
+          ]
+        }
+      }
+    },
+    {
+      id: "aventurine",
+      name: "Aventurine",
+      cost: 2,
+      element: "Imaginary",
+      path: "Preservation",
+      position: "on",
+      bonds: ["IPC", "Follow-Up ATK", "Shield"],
+      stats: { hp: 1300, atk: 590, def: 560, spd: 102 },
+      combat: {
+        role: "shield",
+        maxEnergy: 120,
+        startEnergy: 60,
+        basic: { name: "Straight Bet", multiplier: 0.5, targets: 1, energyGain: 20, spGain: 1, toughnessDamage: 20 },
+        skill: {
+          name: "Cornerstone Deluxe",
+          type: "shield",
+          shieldPct: 0.20,
+          energyGain: 30,
+          spCost: 1
+        },
+        ultimate: {
+          name: "Roulette Shark",
+          multiplier: 1.8,
+          targets: "all",
+          energyCost: 120,
+          toughnessDamage: 20,
+          followUp: { multiplier: 0.8, targets: 1 }
+        },
+        talent: { followUpsForEnhanced: 3, enhancedBasicMultiplier: 0.9 },
+        empowerment: { followUpMultiplier: 0.6 }
+      },
+      note: "Position-locked. On-Field Aventurine is the 2-cost Shield/Follow-Up anchor and IPC body.",
+      slots: {
+        on: {
+          empowerment: "All-In (Currency Wars): Aventurine's follow-up attacks grant the whole squad a Shield, and shielded allies take 10% less DMG.",
+          abilities: [
+            { slot: "Basic ATK", name: "Straight Bet", text: "Deals 50% ATK Imaginary DMG to one enemy." },
+            { slot: "Skill", name: "Cornerstone Deluxe", text: "Grants the squad a Shield equal to 20% of Aventurine's DEF." },
+            { slot: "Ultimate", name: "Roulette Shark", text: "Deals 180% ATK Imaginary DMG to all enemies and launches a follow-up." },
+            { slot: "Talent", name: "Bingo!", text: "After 3 ally attacks, Aventurine launches a follow-up for 60% ATK Imaginary DMG." }
+          ]
+        }
+      }
+    },
+    {
+      id: "sparkle",
+      name: "Sparkle",
+      cost: 2,
+      element: "Quantum",
+      path: "Harmony",
+      position: "off",
+      bonds: ["The Planet of Festivities", "Skill Points", "Quantum Resonance"],
+      stats: { hp: 1050, atk: 580, def: 450, spd: 106 },
+      combat: {
+        role: "buffer",
+        maxEnergy: 110,
+        startEnergy: 55,
+        basic: { name: "Red Herring", multiplier: 0.5, targets: 1, energyGain: 20, spGain: 1, toughnessDamage: 20 },
+        skill: {
+          name: "Dreamdiver",
+          type: "buff",
+          buff: { dmgPct: 0.20, critDmg: 0.20, turns: 2 },
+          energyGain: 30,
+          spCost: 1
+        },
+        ultimate: {
+          name: "The Curtain Never Falls on Dreams",
+          type: "buff",
+          buff: { dmgPct: 0.25, critDmg: 0.25, spGain: 2, turns: 2 },
+          energyCost: 110
+        },
+        talent: { spDraw: true },
+        empowerment: { maxSpBonus: 2 }
+      },
+      note: "Position-locked. Off-Field Sparkle is the 2-cost Skill Point/Quantum support who can raise the squad's SP ceiling.",
+      slots: {
+        off: {
+          empowerment: "Masked Fools (Currency Wars): Sparkle raises the team's max Skill Points by 2, and SP-bond allies draw a prize whenever they spend SP.",
+          abilities: [
+            { slot: "Basic ATK", name: "Red Herring", text: "Deals 50% ATK Quantum DMG to one enemy." },
+            { slot: "Skill", name: "Dreamdiver", text: "Buffs the highest-ATK ally with +20% DMG and +20% CRIT DMG for 2 turns." },
+            { slot: "Ultimate", name: "The Curtain Never Falls on Dreams", text: "Buffs all allies with +25% DMG and +25% CRIT DMG, and restores 2 Skill Points." },
+            { slot: "Talent", name: "Unreliable Narrator", text: "Allies' Skill Point spending has a chance to be refunded." }
+          ]
+        }
+      }
+    },
+    {
+      id: "pela",
+      name: "Pela",
+      cost: 2,
+      element: "Ice",
+      path: "Nihility",
+      position: "off",
+      bonds: ["Belobog", "Debuff"],
+      stats: { hp: 1020, atk: 585, def: 410, spd: 105 },
+      combat: {
+        role: "debuff",
+        maxEnergy: 110,
+        startEnergy: 55,
+        basic: { name: "Frost Shot", multiplier: 0.5, targets: 1, energyGain: 20, spGain: 1, toughnessDamage: 20 },
+        skill: {
+          name: "Frostbite",
+          multiplier: 0.9,
+          targets: 1,
+          energyGain: 30,
+          spCost: 1,
+          toughnessDamage: 20,
+          dot: { type: "Exposed", multiplier: 0.5, turns: 2, element: "Ice" }
+        },
+        ultimate: {
+          name: "Zone Suppression",
+          multiplier: 1.5,
+          targets: "all",
+          energyCost: 110,
+          toughnessDamage: 20,
+          dot: { type: "Exposed", multiplier: 0.5, turns: 2, element: "Ice" }
+        },
+        talent: { dotDmgPct: 0.15 },
+        empowerment: { followUpMultiplier: 0.4 }
+      },
+      note: "Position-locked. Off-Field Pela is the 2-cost Debuff/Belobog bridge who strips enemy defenses.",
+      slots: {
+        off: {
+          empowerment: "Tactical Strike (Currency Wars): Pela's Exposed debuff also reduces enemy DEF, and debuffed enemies take extra damage from all sources.",
+          abilities: [
+            { slot: "Basic ATK", name: "Frost Shot", text: "Deals 50% ATK Ice DMG to one enemy." },
+            { slot: "Skill", name: "Frostbite", text: "Deals 90% ATK Ice DMG to one enemy and applies Exposed for 2 turns." },
+            { slot: "Ultimate", name: "Zone Suppression", text: "Deals 150% ATK Ice DMG to all enemies and applies Exposed for 2 turns." },
+            { slot: "Talent", name: "Data Bank", text: "Pela's debuffs increase the damage enemies take by 10%." }
+          ]
+        }
+      }
     }
   ];
 
@@ -686,11 +917,11 @@
     return null;
   }
 
-  window.CW_CHARACTERS = {
+  return {
     ELEMENTS: ELEMENTS,
     POSITIONS: POSITIONS,
     COST_LABEL: COST_LABEL,
     list: CHARACTERS,
     byId: byId
   };
-})();
+});

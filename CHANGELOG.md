@@ -2,6 +2,38 @@
 
 All notable changes to CurrencyWarsLegacy are recorded here. Dates use ISO format.
 
+## 2026-11-17
+
+### Added
+
+- Standard Gambit vertical slice: Environment choice, three planes of Reward/Battle/Supply/Encounter/Boss nodes, Squad HP and a C-SSS rating.
+- `run.js`, a headless run engine covering Gold, interest, win streaks, EXP/level, team size, shop odds, rerolls, buy/sell, bench and 3-copy merging to 3-star.
+- `runScreen.js` rebuilt as a Prydwen-style preparation board: node track, Bond rail, five-card shop with cost odds, On/Off-Field slots, bench, EXP card, Store and Battle controls.
+- Investment Environment/Strategy/Supply/Encounter choices now use full-screen card layouts with a Confirm step.
+- Combat HUD expanded with phase/AV progress, Squad HP, Gold, AUTO, Bond DMG rail and larger party/enemy cards.
+- Shop lock, search, hide/show, drag-and-drop deployment and per-unit gear selects.
+- `docs/ui-reference.md` with layout notes and source links.
+- `data/cw-4.6.js`, a canonical dataset with `verified` / `documented` / `placeholder` provenance for Bonds, equipment, enemies, run tables, Strategies and Environments.
+- Off-Field deployment (untargetable, automatic turns) and 4 On-Field / 6 Off-Field limits in `combat.js`.
+- Bond and equipment combat hooks, star scaling, shields, healing, buff ultimates and multi-target enemy skills.
+- Enemy templates: Debt Collector, IPC Enforcer, Rival Broker and Auction Overseer.
+- 2-cost characters: Kafka, Ruan Mei, Aventurine, Sparkle and Pela.
+- `tools/validate-data.js` and `tools/run-test.js`; expanded `tools/combat-test.js` with Off-Field, Bond, equipment, star and enemy-skill coverage.
+
+### Changed
+
+- Character data, Bonds, equipment and investment codex entries now come from `data/cw-4.6.js` instead of duplicated inline arrays.
+- Bond, equipment, Strategy and Environment descriptions now use the 4.6 snapshot wording. Entries the snapshot lists by name only no longer carry invented effect text.
+- `battleScreen.js` accepts run battle configs and reports the result back to the run.
+- The Combat Sandbox and Character Lab remain available as dev entries.
+- Character Lab now lists 27 implemented characters.
+
+### Notes
+
+- The 4.6 season is gone; archived sources are the ground truth. Placeholder numbers are flagged in data.
+- Characters without authored combat kits use a generic slice profile until their kits are ported.
+- Off-Field DoT application to players, Emblems, advanced equipment synthesis, Expert Advisors, Overclock Gambit and saved runs remain out of scope for this slice.
+
 ## 2026-10-19
 
 ### Added

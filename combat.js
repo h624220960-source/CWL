@@ -7,7 +7,13 @@
 })(typeof globalThis !== "undefined" ? globalThis : this, function () {
   "use strict";
 
-  var DATA = typeof window !== "undefined" && window.CW_CHARACTERS ? window.CW_CHARACTERS : null;
+  var DATA = typeof window !== "undefined" && window.CW_CHARACTERS
+    ? window.CW_CHARACTERS
+    : (typeof require === "function" ? require("./characters.js") : null);
+
+  var DATASET = typeof window !== "undefined" && window.CW_DATA
+    ? window.CW_DATA
+    : (typeof require === "function" ? require("./data/cw-4.6.js") : null);
 
   var GENERIC_ENEMIES = {
     debtCollector: {
@@ -66,6 +72,125 @@
     return total;
   }
 
+  function inferRole(character) {
+    if (character.position === "on") {
+      return "attacker";
+    }
+    if (character.path === "Abundance") {
+      return "healer";
+    }
+    if (character.path === "Preservation") {
+      return "shield";
+    }
+    if (character.path === "Harmony") {
+      return "buffer";
+    }
+    if (character.path === "Nihility") {
+      return "debuff";
+    }
+    return "attacker";
+  }
+
+  /*
+   * Characters without authored combat data get a generic slice profile.
+   * This keeps every lab unit playable while real kits are ported.
+   * The profile is deliberately simple and is not 4.6 parity.
+   */
+  function synthesizeCombat(character) {
+    var role = inferRole(character);
+    var base = {
+      role: role,
+      maxEnergy: 100,
+      startEnergy: 50,
+      basic: {
+        name: (character.slots[character.position === "both" ? "on" : character.position] || {}).abilities
+          ? character.slots[character.position === "both" ? "on" : character.position].abilities[0].name
+          : "Basic ATK",
+        multiplier: 0.5,
+        targets: 1,
+        energyGain: 20,
+        spGain: 1,
+        toughnessDamage: 20
+      },
+      skill: {
+        name: "Skill",
+        multiplier: 1.0,
+        targets: 1,
+        energyGain: 30,
+        spCost: 1,
+        toughnessDamage: 20
+      },
+      ultimate: {
+        name: "Ultimate",
+        multiplier: 1.8,
+        targets: "all",
+        energyCost: 100,
+        toughnessDamage: 20
+      },
+      talent: {},
+      empowerment: {},
+      synthesized: true
+    };
+
+    if (role === "healer") {
+      base.skill = {
+        name: "Support: Mend",
+        type: "heal",
+        healPct: 0.8,
+        energyGain: 30,
+        spCost: 1
+      };
+      base.ultimate = {
+        name: "Support: Rally",
+        type: "heal",
+        healPct: 1.2,
+        energyCost: 100
+      };
+    } else if (role === "buffer") {
+      base.skill = {
+        name: "Support: Encourage",
+        type: "buff",
+        buff: { dmgPct: 0.15, turns: 2 },
+        energyGain: 30,
+        spCost: 1
+      };
+      base.ultimate = {
+        name: "Support: Crescendo",
+        type: "buff",
+        buff: { dmgPct: 0.25, spd: 6, turns: 2 },
+        energyCost: 100
+      };
+    } else if (role === "debuff") {
+      base.skill = {
+        name: "Support: Hex",
+        multiplier: 0.9,
+        targets: 1,
+        energyGain: 30,
+        spCost: 1,
+        toughnessDamage: 20,
+        dot: { type: "Exposed", multiplier: 0.6, turns: 2, element: character.element }
+      };
+      base.ultimate = {
+        name: "Support: Curse",
+        multiplier: 1.4,
+        targets: "all",
+        energyCost: 100,
+        toughnessDamage: 20,
+        dot: { type: "Exposed", multiplier: 0.6, turns: 2, element: character.element }
+      };
+    } else if (role === "shield") {
+      base.skill = {
+        name: "Support: Barrier",
+        type: "shield",
+        shieldPct: 0.18,
+        energyGain: 30,
+        spCost: 1
+      };
+    }
+
+    return base;
+  }
+
   function getCharacter(id) {
     if (!DATA) {
       throw new Error("CW_CHARACTERS is not loaded. Load characters.js before combat.js.");
@@ -75,17 +200,60 @@
       throw new Error("Unknown character: " + id);
     }
     if (!character.combat) {
-      throw new Error("Character has no combat data: " + id);
+      character.combat = synthesizeCombat(character);
     }
     return character;
   }
 
   function getEnemyTemplate(id) {
-    var template = GENERIC_ENEMIES[id];
+    var template = DATASET && DATASET.enemies ? DATASET.enemies[id] : null;
+    if (!template) {
+      template = GENERIC_ENEMIES[id];
+    }
     if (!template) {
       throw new Error("Unknown generic enemy: " + id);
     }
     return template;
+  }
+
+  function applyBondEffects(battle, bonds) {
+    bonds.forEach(function (entry) {
+      var id = typeof entry === "string" ? entry : entry.id;
+      var level = typeof entry === "string" ? 1 : (entry.level || 1);
+      var def = DATASET && DATASET.bondById ? DATASET.bondById(id) : null;
+      if (!def || !def.implemented || !def.combat) {
+        return;
+      }
+      battle.bondLevels[id] = level;
+      var combat = def.combat;
+      if (combat.spdPctPerLevel) {
+        battle.bondMods.spdPct += combat.spdPctPerLevel * level;
+      }
+      if (combat.startEnergyPerLevel) {
+        battle.bondMods.startEnergy += combat.startEnergyPerLevel * level;
+      }
+      if (combat.energyGainPctPerLevel) {
+        battle.bondMods.energyGainPct += combat.energyGainPctPerLevel * level;
+      }
+      if (combat.dotDmgPctPerLevel) {
+        battle.bondMods.dotDmgPct += combat.dotDmgPctPerLevel * level;
+      }
+      if (combat.breakEffectPerLevel) {
+        battle.bondMods.breakEffect += combat.breakEffectPerLevel * level;
+      }
+      if (combat.superBreakMaxHpPctPerLevel) {
+        battle.bondMods.superBreakMaxHpPct += combat.superBreakMaxHpPctPerLevel * level;
+      }
+      if (combat.healPctPerLevel) {
+        battle.bondMods.healPct += combat.healPctPerLevel * level;
+      }
+      if (combat.shieldPctPerLevel) {
+        battle.bondMods.shieldPct += combat.shieldPctPerLevel * level;
+      }
+      if (combat.followUpDmgPctPerLevel) {
+        battle.bondMods.followUpDmgPct += combat.followUpDmgPctPerLevel * level;
+      }
+    });
   }
 
   function Battle(options) {
@@ -107,14 +275,62 @@
     this.enemies = [];
     this.summons = [];
     this.units = [];
+    this.maxOnField = options.maxOnField || 4;
+    this.maxOffField = options.maxOffField || 6;
+    this.difficulty = options.difficulty || 1;
+    this.bondLevels = {};
+    this.bondDamage = {};
+    this.bondMods = {
+      spdPct: 0,
+      startEnergy: 0,
+      energyGainPct: 0,
+      dotDmgPct: 0,
+      breakEffect: 0,
+      superBreakMaxHpPct: 0,
+      healPct: 0,
+      shieldPct: 0,
+      followUpDmgPct: 0
+    };
 
-    var party = options.party || ["aglaea"];
-    if (party.length < 1 || party.length > 4) {
-      throw new Error("Combat supports 1 to 4 On-Field characters.");
+    applyBondEffects(this, options.bonds || []);
+
+    var roster = options.roster;
+    if (!roster) {
+      roster = (options.party || ["aglaea"]).map(function (id) {
+        return { id: id, position: "on" };
+      });
     }
-    for (var i = 0; i < party.length; i++) {
-      this.players.push(this.makePlayer(party[i], "on", i));
+    if (roster.length < 1 || roster.length > this.maxOnField + this.maxOffField) {
+      throw new Error("Combat supports 1 to " + (this.maxOnField + this.maxOffField) + " deployed characters.");
     }
+
+    var onIndex = 0;
+    var offIndex = 0;
+    for (var i = 0; i < roster.length; i++) {
+      var spec = roster[i];
+      if (typeof spec === "string") {
+        spec = { id: spec, position: "on" };
+      }
+      if (spec.position === "on") {
+        onIndex++;
+      } else {
+        offIndex++;
+      }
+      if (onIndex > this.maxOnField) {
+        throw new Error("Too many On-Field characters (max " + this.maxOnField + ").");
+      }
+      if (offIndex > this.maxOffField) {
+        throw new Error("Too many Off-Field characters (max " + this.maxOffField + ").");
+      }
+      this.players.push(this.makePlayer(spec));
+    }
+
+    var spBonus = 0;
+    this.players.forEach(function (player) {
+      spBonus += player.maxSpBonus || 0;
+    });
+    this.maxSp += spBonus;
+    this.sp = Math.min(this.sp, this.maxSp);
 
     var enemyIds = options.enemies || ["debtCollector", "debtCollector"];
     for (var j = 0; j < enemyIds.length; j++) {
@@ -128,32 +344,120 @@
     this.step();
   }
 
-  Battle.prototype.makePlayer = function (id, position, index) {
-    var character = getCharacter(id);
+  Battle.prototype.makePlayer = function (spec) {
+    if (typeof spec === "string") {
+      spec = { id: spec, position: "on" };
+    }
+    var character = getCharacter(spec.id);
     var kit = character.combat;
+    var position = spec.position === "off" ? "off" : "on";
+    var star = spec.star || 1;
+    var starTable = DATASET && DATASET.run ? DATASET.run.starMultipliers : null;
+    var starMult = starTable && starTable[star] ? starTable[star] : 1;
+
+    var equipMods = {
+      hpPct: 0,
+      spdPct: 0,
+      luckyRate: 0,
+      initialEnergy: 0,
+      dmgReduction: 0,
+      breakEfficiency: 0,
+      dmgPct: 0
+    };
+    var equipment = (spec.equipment || []).filter(Boolean);
+    equipment.forEach(function (equipmentId) {
+      var def = DATASET && DATASET.equipmentById ? DATASET.equipmentById(equipmentId) : null;
+      if (!def || !def.combat) {
+        return;
+      }
+      var combat = def.combat;
+      if (combat.hpPct) {
+        equipMods.hpPct += combat.hpPct;
+      }
+      if (combat.spdPct) {
+        equipMods.spdPct += combat.spdPct;
+      }
+      if (combat.luckyRate) {
+        equipMods.luckyRate += combat.luckyRate;
+      }
+      if (combat.initialEnergy) {
+        equipMods.initialEnergy += combat.initialEnergy;
+      }
+      if (combat.dmgReduction) {
+        equipMods.dmgReduction += combat.dmgReduction;
+      }
+      if (combat.breakEfficiency) {
+        equipMods.breakEfficiency += combat.breakEfficiency;
+      }
+      if (position === "on" && combat.onFieldDmgPct) {
+        equipMods.dmgPct += combat.onFieldDmgPct;
+      }
+      if (position === "off" && combat.offFieldDmgPct) {
+        equipMods.dmgPct += combat.offFieldDmgPct;
+      }
+    });
+
+    var bondIds = [];
+    var battleRef = this;
+    character.bonds.forEach(function (bondName) {
+      var def = DATASET && DATASET.bonds ? DATASET.bonds.filter(function (candidate) {
+        return candidate.name === bondName;
+      })[0] : null;
+      if (def && def.implemented && battleRef.bondLevels[def.id] > 0) {
+        bondIds.push(def.id);
+      }
+    });
+
+    var maxHp = Math.floor(character.stats.hp * starMult * (1 + equipMods.hpPct));
+    var atk = character.stats.atk * starMult;
+    var def = character.stats.def * starMult;
+    var spd = character.stats.spd * starMult * (1 + equipMods.spdPct + this.bondMods.spdPct);
+    var maxEnergy = kit.maxEnergy || 100;
+    var startEnergy = (kit.startEnergy || 0) + equipMods.initialEnergy + this.bondMods.startEnergy;
+
+    var onFieldCount = 0;
+    var offFieldCount = 0;
+    this.players.forEach(function (player) {
+      if (player.position === "on") {
+        onFieldCount++;
+      } else {
+        offFieldCount++;
+      }
+    });
+    var slot = position === "on" ? onFieldCount + 1 : this.maxOnField + offFieldCount + 1;
+
     return {
       uid: "p" + (++this.uidCounter),
       side: "player",
       position: position,
-      slot: index + 1,
+      slot: slot,
       characterId: character.id,
       name: character.name,
       initials: kit.initials || initialsFor(character.name),
       element: character.element,
+      star: star,
+      bondIds: bondIds,
+      equipment: equipment.slice(),
+      role: kit.role || (position === "off" ? "buffer" : "attacker"),
       base: {
-        hp: character.stats.hp,
-        atk: character.stats.atk,
-        def: character.stats.def,
-        spd: character.stats.spd
+        hp: maxHp,
+        atk: atk,
+        def: def,
+        spd: spd
       },
-      maxHp: character.stats.hp,
-      hp: character.stats.hp,
-      energy: kit.startEnergy,
-      maxEnergy: kit.maxEnergy,
+      maxHp: maxHp,
+      hp: maxHp,
+      shield: 0,
+      energy: clamp(startEnergy, 0, maxEnergy),
+      maxEnergy: maxEnergy,
       critRate: 0.05,
       critDmg: 0.5,
-      luckyRate: 0.05,
+      luckyRate: 0.05 + equipMods.luckyRate,
       luckyDmg: 0.5,
+      dmgPct: equipMods.dmgPct,
+      dmgReduction: equipMods.dmgReduction,
+      breakEfficiency: equipMods.breakEfficiency,
+      maxSpBonus: kit.empowerment && kit.empowerment.maxSpBonus ? kit.empowerment.maxSpBonus : 0,
       kit: kit,
       buffs: [],
       threads: 0,
@@ -170,7 +474,7 @@
       summonFreshAction: -1,
       revives: 0,
       damageVersion: 0,
-      av: 10000 / character.stats.spd,
+      av: 10000 / spd,
       alive: true
     };
   };
@@ -178,27 +482,35 @@
   Battle.prototype.makeEnemy = function (id, index) {
     var template = getEnemyTemplate(id);
     var infiniteHp = this.infiniteEnemyHp;
+    var sameCount = this.enemies.filter(function (enemy) {
+      return enemy.templateId === id;
+    }).length;
+    var difficulty = this.difficulty || 1;
     return {
       uid: "e" + (++this.uidCounter),
       side: "enemy",
       position: "enemy",
-      name: template.name + (index > 0 ? " " + (index + 1) : ""),
+      name: template.name + (sameCount > 0 ? " " + (sameCount + 1) : ""),
+      templateId: id,
       initials: template.initials || initialsFor(template.name),
       element: "Physical",
       base: {
-        hp: infiniteHp ? Infinity : template.hp,
-        atk: template.atk,
-        def: template.def,
+        hp: infiniteHp ? Infinity : Math.floor(template.hp * difficulty),
+        atk: template.atk * difficulty,
+        def: template.def * difficulty,
         spd: template.spd
       },
-      maxHp: infiniteHp ? Infinity : template.hp,
-      hp: infiniteHp ? Infinity : template.hp,
+      maxHp: infiniteHp ? Infinity : Math.floor(template.hp * difficulty),
+      hp: infiniteHp ? Infinity : Math.floor(template.hp * difficulty),
       infiniteHp: infiniteHp || undefined,
       toughness: template.toughness,
       maxToughness: template.toughness,
       weakness: template.weakness.slice(),
       broken: false,
       basic: template.basic,
+      skill: template.skill,
+      boss: template.boss || false,
+      turnCount: 0,
       critRate: 0.05,
       critDmg: 0.5,
       luckyRate: 0,
@@ -318,6 +630,16 @@
 
     var unit = ready[0];
     if (unit.side === "player") {
+      if (unit.position === "off") {
+        this.offFieldTurn(unit);
+        this.tickBuffs(unit);
+        if (unit.alive) {
+          unit.av = 10000 / this.getSpd(unit);
+        }
+        this.actionCount++;
+        this.checkEnd();
+        return this.getState();
+      }
       unit.av = 0;
       this.waitingForPlayer = unit;
       return this.getState();
@@ -360,6 +682,58 @@
     return this.getState();
   };
 
+  Battle.prototype.offFieldTurn = function (unit) {
+    var livingAllies = this.getLiving("player");
+    var livingEnemies = this.getLiving("enemy");
+    var role = unit.role || "buffer";
+    this.gainEnergy(unit, 20);
+
+    if (role === "healer" && livingAllies.length) {
+      var target = livingAllies.slice().sort(function (a, b) {
+        return (a.hp / a.maxHp) - (b.hp / b.maxHp);
+      })[0];
+      var healPct = unit.kit.skill && unit.kit.skill.healPct ? unit.kit.skill.healPct : 0.8;
+      var heal = this.healPlayer(target, this.getAtk(unit) * healPct);
+      this.writeLog(unit.name + " supports " + target.name + " for " + heal + " HP.");
+      return;
+    }
+
+    if (role === "buffer" && livingAllies.length) {
+      var buff = (unit.kit.skill && unit.kit.skill.buff) || { dmgPct: 0.15, turns: 2 };
+      this.applyBuffToTeam(unit, buff);
+      return;
+    }
+
+    if (role === "shield" && livingAllies.length) {
+      var shieldPct = unit.kit.skill && unit.kit.skill.shieldPct ? unit.kit.skill.shieldPct : 0.12;
+      var shield = this.addShield(unit, unit.maxHp * shieldPct);
+      var self = this;
+      livingAllies.forEach(function (ally) {
+        if (ally.uid !== unit.uid) {
+          self.addShield(ally, shield);
+        }
+      });
+      this.writeLog(unit.name + " shields the squad for " + shield + " each.");
+      return;
+    }
+
+    if (role === "debuff" && livingEnemies.length) {
+      var debuffTarget = this.rng.pick(livingEnemies);
+      var dot = (unit.kit.skill && unit.kit.skill.dot) ||
+        { type: "Exposed", multiplier: 0.6, turns: 2, element: unit.element };
+      this.applyDot(debuffTarget, dot, unit);
+      this.writeLog(unit.name + " hexes " + debuffTarget.name + ".");
+      return;
+    }
+
+    if (livingEnemies.length) {
+      var attackTarget = this.rng.pick(livingEnemies);
+      var hit = this.calculateDamage(unit, attackTarget, unit.kit.basic.multiplier || 0.5, unit.element);
+      this.writeLog(unit.name + " assists against " + attackTarget.name + " for " + hit.amount + " DMG.");
+      this.damageEnemy(attackTarget, hit.amount, unit.element, 10, unit, hit);
+    }
+  };
+
   Battle.prototype.enemyTurn = function (unit) {
     if (!this.tickDots(unit)) {
       return;
@@ -377,16 +751,27 @@
     if (!targets.length) {
       return;
     }
-    var target = this.rng.pick(targets);
-    var hit = this.calculateDamage(unit, target, unit.basic.multiplier, unit.element);
-    var tags = (hit.crit ? " [CRIT]" : "") + (hit.lucky ? " [LUCKY]" : "");
-    this.writeLog(unit.name + " uses " + unit.basic.name + " on " + target.name +
-      " for " + hit.amount + " DMG." + tags);
-    if (target.side === "summon") {
-      this.damageSummon(target, hit.amount, hit);
-    } else {
-      this.damagePlayer(target, hit.amount, unit, hit);
-    }
+    unit.turnCount = (unit.turnCount || 0) + 1;
+
+    var useSkill = unit.skill && unit.skill.every && unit.turnCount % unit.skill.every === 0;
+    var move = useSkill ? unit.skill : unit.basic;
+    var attackTargets = move.targets === "all" ? targets : [this.rng.pick(targets)];
+
+    this.writeLog(unit.name + " uses " + move.name + ".");
+    var self = this;
+    attackTargets.forEach(function (target) {
+      var hit = self.calculateDamage(unit, target, move.multiplier, unit.element);
+      var tags = (hit.crit ? " [CRIT]" : "") + (hit.lucky ? " [LUCKY]" : "");
+      self.writeLog(unit.name + " hits " + target.name + " for " + hit.amount + " DMG." + tags);
+      if (target.side === "summon") {
+        self.damageSummon(target, hit.amount, hit);
+      } else {
+        self.damagePlayer(target, hit.amount, unit, hit);
+      }
+      if (move.dot && target.alive) {
+        self.applyDot(target, move.dot, unit);
+      }
+    });
   };
 
   Battle.prototype.calculateDamage = function (attacker, target, multiplier, element) {
@@ -398,7 +783,7 @@
     }
 
     var raw = this.getAtk(attacker) * multiplier;
-    var bonuses = 1 + sumBuff(attacker, "dmgPct");
+    var bonuses = 1 + sumBuff(attacker, "dmgPct") + (attacker.dmgPct || 0);
     var defense = 1000 / (1000 + this.getDef(target));
     var elemental = target.weakness && target.weakness.indexOf(element) !== -1 ? 1.25 : 1.0;
     var broken = target.broken ? 1.1 : 1.0;
@@ -406,7 +791,7 @@
 
     var crit = this.rng.next() < (roller.critRate || 0);
     if (crit) {
-      amount *= 1 + (roller.critDmg || 0);
+      amount *= 1 + (roller.critDmg || 0) + sumBuff(roller, "critDmg");
     }
     var lucky = this.rng.next() < (roller.luckyRate || 0);
     if (lucky) {
@@ -418,6 +803,16 @@
       crit: crit,
       lucky: lucky
     };
+  };
+
+  Battle.prototype.recordBondDamage = function (attacker, amount) {
+    if (!attacker || attacker.side !== "player" || !attacker.bondIds || !(amount > 0)) {
+      return;
+    }
+    var self = this;
+    attacker.bondIds.forEach(function (id) {
+      self.bondDamage[id] = (self.bondDamage[id] || 0) + amount;
+    });
   };
 
   Battle.prototype.recordDamage = function (uid, amount, element, meta, kind) {
@@ -478,11 +873,13 @@
     if (target.side !== "enemy" || target.broken || target.toughness <= 0) {
       return;
     }
-    target.toughness = Math.max(0, target.toughness - amount);
+    var efficiency = attacker && attacker.breakEfficiency ? 1 + attacker.breakEfficiency : 1;
+    target.toughness = Math.max(0, target.toughness - amount * efficiency);
     if (target.toughness === 0) {
       target.broken = true;
       var breakEffect = attacker && attacker.kit && attacker.kit.talent &&
         attacker.kit.talent.breakEffect ? attacker.kit.talent.breakEffect : 0;
+      breakEffect += this.bondMods.breakEffect;
       var breakDamage = isFinite(target.maxHp)
         ? Math.floor(target.maxHp * 0.10 * (1 + breakEffect))
         : 0;
@@ -490,6 +887,7 @@
         target.damageVersion = (target.damageVersion || 0) + 1;
         target.hp = Math.max(0, target.hp - breakDamage);
         this.recordDamage(target.uid, breakDamage, "Break", null, "break");
+      this.recordBondDamage(attacker, breakDamage);
       }
       this.writeLog(target.name + " is Weakness-Broken" +
         (breakDamage > 0 ? " for " + breakDamage + " Break DMG." : " (infinite HP)."));
@@ -516,6 +914,7 @@
         target.hp + "/" + target.maxHp + " HP).");
     }
     this.recordDamage(target.uid, amount, element, meta, "hit");
+    this.recordBondDamage(attacker, amount);
     if (!target.infiniteHp && target.hp === 0) {
       target.alive = false;
       this.writeLog(target.name + " is defeated.");
@@ -525,13 +924,23 @@
   };
 
   Battle.prototype.damagePlayer = function (target, amount, attacker, meta) {
+    var reduced = Math.max(1, Math.floor(amount * (1 - (target.dmgReduction || 0))));
+    if (target.shield > 0) {
+      var absorbed = Math.min(target.shield, reduced);
+      target.shield -= absorbed;
+      reduced -= absorbed;
+      if (absorbed > 0) {
+        this.writeLog(target.name + "'s Shield absorbs " + absorbed + " DMG (" +
+          target.shield + " Shield left).");
+      }
+    }
     target.damageVersion = (target.damageVersion || 0) + 1;
-    target.hp = Math.max(0, target.hp - amount);
-    target.energy = clamp(target.energy + 10, 0, target.maxEnergy);
+    target.hp = Math.max(0, target.hp - reduced);
+    this.gainEnergy(target, 10);
     var tags = (meta && meta.crit ? " [CRIT]" : "") + (meta && meta.lucky ? " [LUCKY]" : "");
-    this.writeLog(target.name + " takes " + amount + " DMG" + tags + " (" + target.hp + "/" +
+    this.writeLog(target.name + " takes " + reduced + " DMG" + tags + " (" + target.hp + "/" +
       target.maxHp + " HP, " + Math.floor(target.energy) + " Energy).");
-    this.recordDamage(target.uid, amount, attacker ? attacker.element : "Physical", meta, "hit");
+    this.recordDamage(target.uid, reduced, attacker ? attacker.element : "Physical", meta, "hit");
 
     if (target.hp === 0) {
       target.revives++;
@@ -540,6 +949,33 @@
       this.writeLog(target.name + " revives at 30% HP. +200 AV elapsed (" +
         Math.round(this.elapsedAV) + "/" + this.turnLimitAV + ").");
     }
+  };
+
+  Battle.prototype.gainEnergy = function (unit, amount) {
+    if (!unit || unit.side !== "player") {
+      return;
+    }
+    var gain = amount * (1 + this.bondMods.energyGainPct);
+    unit.energy = clamp(unit.energy + gain, 0, unit.maxEnergy);
+  };
+
+  Battle.prototype.healPlayer = function (unit, amount) {
+    if (!unit || !unit.alive) {
+      return 0;
+    }
+    var heal = Math.max(1, Math.floor(amount * (1 + this.bondMods.healPct)));
+    var before = unit.hp;
+    unit.hp = Math.min(unit.maxHp, unit.hp + heal);
+    return unit.hp - before;
+  };
+
+  Battle.prototype.addShield = function (unit, amount) {
+    if (!unit || !unit.alive) {
+      return 0;
+    }
+    var shield = Math.max(1, Math.floor(amount * (1 + this.bondMods.shieldPct)));
+    unit.shield = (unit.shield || 0) + shield;
+    return shield;
   };
 
   Battle.prototype.damageSummon = function (summon, amount, meta) {
@@ -571,7 +1007,7 @@
       return player.uid === summon.ownerUid;
     })[0];
     if (owner) {
-      owner.energy = clamp(owner.energy + 20, 0, owner.maxEnergy);
+      this.gainEnergy(owner, 20);
       this.writeLog(summon.name + " disappears. " + owner.name + " gains 20 Energy.");
       if (owner.supremeStance) {
         this.endSupremeStance(false);
@@ -705,7 +1141,7 @@
     if (adjacent) {
       this.hitEnemy(summon, adjacent, summonData.adjacentMultiplier, summonData.toughnessDamage, false);
     }
-    owner.energy = clamp(owner.energy + summonData.energyGain, 0, owner.maxEnergy);
+    this.gainEnergy(owner, summonData.energyGain);
   };
 
   Battle.prototype.countdownTurn = function (countdown) {
@@ -747,7 +1183,7 @@
         id: "skill",
         name: skillName,
         available: canPaySkill,
-        needsTarget: skill.type !== "summon",
+        needsTarget: ["summon", "buff", "shield", "heal"].indexOf(skill.type) === -1,
         reason: skillReason
       },
       {
@@ -829,7 +1265,7 @@
     if (unit.characterId === "aglaea" && unit.supremeStance) {
       var enhanced = basic.enhanced;
       this.sp = clamp(this.sp + (enhanced.spGain || 0), 0, this.maxSp);
-      unit.energy = clamp(unit.energy + (enhanced.energyGain || 0), 0, unit.maxEnergy);
+      this.gainEnergy(unit, enhanced.energyGain || 0);
       this.writeLog(unit.name + " uses " + enhanced.name + " (Joint ATK).");
 
       this.hitEnemy(unit, target, enhanced.multiplier, enhanced.toughnessDamage, false);
@@ -853,7 +1289,7 @@
     }
 
     this.sp = clamp(this.sp + (basic.spGain || 0), 0, this.maxSp);
-    unit.energy = clamp(unit.energy + (basic.energyGain || 0), 0, unit.maxEnergy);
+    this.gainEnergy(unit, basic.energyGain || 0);
 
     if (basic.enhanced && unit.tiles >= basic.enhanced.tilesCost) {
       unit.tiles = Math.max(0, unit.tiles - basic.enhanced.tilesCost);
@@ -883,9 +1319,91 @@
     this.hitEnemy(unit, target, basic.multiplier, basic.toughnessDamage);
   };
 
+  Battle.prototype.spendSkillPoints = function (unit, spCost) {
+    if (!spCost || spCost <= 0) {
+      return;
+    }
+    if (this.sp > 0) {
+      this.sp = clamp(this.sp - spCost, 0, this.maxSp);
+    } else if (unit.tempSp > 0) {
+      unit.tempSp--;
+      this.writeLog(unit.name + " spends 1 temporary Skill Point.");
+    }
+  };
+
+  Battle.prototype.applyBuffToTeam = function (source, buff) {
+    var self = this;
+    this.getLiving("player").forEach(function (ally) {
+      if (buff.dmgPct) {
+        ally.buffs.push({ stat: "dmgPct", amount: buff.dmgPct, turns: buff.turns || 2, appliedOnAction: self.actionCount });
+      }
+      if (buff.critDmg) {
+        ally.buffs.push({ stat: "critDmg", amount: buff.critDmg, turns: buff.turns || 2, appliedOnAction: self.actionCount });
+      }
+      if (buff.spd) {
+        ally.buffs.push({ stat: "spd", amount: buff.spd, turns: buff.turns || 2, appliedOnAction: self.actionCount });
+        ally.spdBuffEvents++;
+        if (ally.kit.empowerment && ally.kit.empowerment.maxThreads) {
+          ally.threads = Math.min(ally.kit.empowerment.maxThreads, ally.threads + 1);
+        }
+      }
+    });
+    if (buff.spGain) {
+      this.sp = clamp(this.sp + buff.spGain, 0, this.maxSp);
+    }
+    var parts = [];
+    if (buff.dmgPct) {
+      parts.push("+" + Math.round(buff.dmgPct * 100) + "% DMG");
+    }
+    if (buff.critDmg) {
+      parts.push("+" + Math.round(buff.critDmg * 100) + "% CRIT DMG");
+    }
+    if (buff.spd) {
+      parts.push("+" + buff.spd + " SPD");
+    }
+    if (buff.spGain) {
+      parts.push("+" + buff.spGain + " SP");
+    }
+    this.writeLog(source.name + " buffs the squad: " + parts.join(", ") + " (" +
+      (buff.turns || 2) + " turns).");
+  };
+
   Battle.prototype.useSkill = function (unit, target) {
     var skill = unit.kit.skill;
     var spCost = skill.spCost || 0;
+
+    if (skill.type === "buff") {
+      this.spendSkillPoints(unit, spCost);
+      this.gainEnergy(unit, skill.energyGain || 0);
+      this.writeLog(unit.name + " uses " + skill.name + ".");
+      this.applyBuffToTeam(unit, skill.buff || { dmgPct: 0.15, turns: 2 });
+      return;
+    }
+
+    if (skill.type === "shield") {
+      this.spendSkillPoints(unit, spCost);
+      this.gainEnergy(unit, skill.energyGain || 0);
+      this.writeLog(unit.name + " uses " + skill.name + ".");
+      var shieldAmount = Math.floor(unit.maxHp * (skill.shieldPct || 0.15));
+      var self = this;
+      this.getLiving("player").forEach(function (ally) {
+        self.addShield(ally, shieldAmount);
+      });
+      return;
+    }
+
+    if (skill.type === "heal") {
+      this.spendSkillPoints(unit, spCost);
+      this.gainEnergy(unit, skill.energyGain || 0);
+      this.writeLog(unit.name + " uses " + skill.name + ".");
+      var healBase = this.getAtk(unit) * (skill.healPct || 0.8);
+      var healed = 0;
+      this.getLiving("player").forEach(function (ally) {
+        healed += self.healPlayer(ally, healBase);
+      });
+      this.writeLog(unit.name + " heals the squad for " + healed + " HP.");
+      return;
+    }
 
     if (unit.characterId === "aglaea") {
       if (unit.supremeStance) {
@@ -894,7 +1412,7 @@
       if (spCost > 0) {
         this.sp = clamp(this.sp - spCost, 0, this.maxSp);
       }
-      unit.energy = clamp(unit.energy + (skill.energyGain || 0), 0, unit.maxEnergy);
+      this.gainEnergy(unit, skill.energyGain || 0);
       this.writeLog(unit.name + " uses " + skill.name + ".");
       this.summonGarmentmaker(unit, skill.summonHealPct);
       return;
@@ -904,16 +1422,8 @@
       return;
     }
 
-    if (spCost > 0) {
-      if (this.sp > 0) {
-        this.sp = clamp(this.sp - spCost, 0, this.maxSp);
-      } else if (unit.tempSp > 0) {
-        unit.tempSp--;
-        this.writeLog(unit.name + " spends 1 temporary Skill Point.");
-      }
-    }
-
-    unit.energy = clamp(unit.energy + (skill.energyGain || 0), 0, unit.maxEnergy);
+    this.spendSkillPoints(unit, spCost);
+    this.gainEnergy(unit, skill.energyGain || 0);
 
     if (skill.hpCostPct) {
       var hpCost = Math.max(1, Math.floor(unit.hp * skill.hpCostPct));
@@ -931,13 +1441,24 @@
     }
 
     this.writeLog(unit.name + " uses " + skill.name + ".");
+    var hitTargets = [];
     if (targets === "all") {
-      var living = this.getLiving("enemy");
-      for (var i = 0; i < living.length; i++) {
-        this.hitEnemy(unit, living[i], multiplier, skill.toughnessDamage);
+      hitTargets = this.getLiving("enemy").slice();
+      for (var i = 0; i < hitTargets.length; i++) {
+        this.hitEnemy(unit, hitTargets[i], multiplier, skill.toughnessDamage);
       }
     } else {
+      hitTargets = target ? [target] : [];
       this.hitEnemy(unit, target, multiplier, skill.toughnessDamage);
+    }
+
+    if (skill.dot) {
+      var self = this;
+      hitTargets.forEach(function (hitTarget) {
+        if (hitTarget.alive) {
+          self.applyDot(hitTarget, skill.dot, unit);
+        }
+      });
     }
 
     if (skill.tilesGain) {
@@ -961,6 +1482,33 @@
     var ultimate = unit.kit.ultimate;
     unit.energy = clamp(unit.energy - (ultimate.energyCost || 0), 0, unit.maxEnergy);
 
+    if (ultimate.type === "buff") {
+      this.writeLog(unit.name + " uses " + ultimate.name + ".");
+      this.applyBuffToTeam(unit, ultimate.buff || { dmgPct: 0.2, turns: 2 });
+      return;
+    }
+
+    if (ultimate.type === "heal") {
+      this.writeLog(unit.name + " uses " + ultimate.name + ".");
+      var healBase = this.getAtk(unit) * (ultimate.healPct || 1.0);
+      var selfHeal = this;
+      this.getLiving("player").forEach(function (ally) {
+        selfHeal.healPlayer(ally, healBase);
+      });
+      this.writeLog(unit.name + " restores the squad's HP.");
+      return;
+    }
+
+    if (ultimate.type === "shield") {
+      this.writeLog(unit.name + " uses " + ultimate.name + ".");
+      var shieldBase = unit.maxHp * (ultimate.shieldPct || 0.2);
+      var selfShield = this;
+      this.getLiving("player").forEach(function (ally) {
+        selfShield.addShield(ally, shieldBase);
+      });
+      return;
+    }
+
     if (unit.characterId === "aglaea" && ultimate.type === "supremeStance") {
       this.writeLog(unit.name + " uses " + ultimate.name + ".");
       this.summonGarmentmaker(unit);
@@ -980,11 +1528,15 @@
     this.writeLog(unit.name + " uses " + ultimate.name + ".");
     var living = this.getLiving("enemy");
 
+    var ultimateDots = [];
     if (ultimate.targets === "all") {
       for (var i = 0; i < living.length; i++) {
         this.hitEnemy(unit, living[i], multiplier, ultimate.toughnessDamage, false);
         if (ultimate.burn && living[i].alive) {
           this.applyDot(living[i], ultimate.burn, unit);
+        }
+        if (ultimate.dot && living[i].alive) {
+          ultimateDots.push(living[i]);
         }
       }
     } else if (ultimate.targets === "single_or_all") {
@@ -994,9 +1546,27 @@
           ? multiplier + (ultimate.allMultiplier || 0)
           : multiplier;
         this.hitEnemy(unit, focus, focusMultiplier, ultimate.toughnessDamage, false);
+        if (ultimate.dot && focus.alive) {
+          ultimateDots.push(focus);
+        }
       }
     } else if (target) {
       this.hitEnemy(unit, target, multiplier, ultimate.toughnessDamage, false);
+      if (ultimate.dot && target.alive) {
+        ultimateDots.push(target);
+      }
+    }
+
+    var ultSelf = this;
+    ultimateDots.forEach(function (hitTarget) {
+      ultSelf.applyDot(hitTarget, ultimate.dot, unit);
+    });
+
+    if (ultimate.followUp) {
+      var followTarget = target && target.alive ? target : living[0];
+      if (followTarget) {
+        this.hitEnemy(unit, followTarget, ultimate.followUp.multiplier, ultimate.toughnessDamage, false);
+      }
     }
 
     if (ultimate.tilesGain) {
@@ -1035,7 +1605,10 @@
     if (!target.alive) {
       return;
     }
-    var damage = Math.max(1, Math.floor(this.getAtk(source) * dot.multiplier));
+    var talentDot = source && source.kit && source.kit.talent && source.kit.talent.dotDmgPct
+      ? source.kit.talent.dotDmgPct : 0;
+    var damage = Math.max(1, Math.floor(this.getAtk(source) * dot.multiplier *
+      (1 + this.bondMods.dotDmgPct) * (1 + talentDot)));
     target.dots = target.dots || [];
     target.dots.push({
       type: dot.type || "DoT",
@@ -1090,13 +1663,15 @@
       return;
     }
 
-    if (wasBroken && unit.kit.talent && unit.kit.talent.superBreakMaxHpPct &&
-        isFinite(target.maxHp)) {
-      var superBreak = Math.floor(target.maxHp * unit.kit.talent.superBreakMaxHpPct);
+    var superBreakPct = ((unit.kit.talent && unit.kit.talent.superBreakMaxHpPct) || 0) +
+      this.bondMods.superBreakMaxHpPct;
+    if (wasBroken && superBreakPct > 0 && isFinite(target.maxHp)) {
+      var superBreak = Math.floor(target.maxHp * superBreakPct);
       target.damageVersion = (target.damageVersion || 0) + 1;
       target.hp = Math.max(0, target.hp - superBreak);
       this.writeLog("Super Break deals " + superBreak + " DMG to " + target.name + ".");
       this.recordDamage(target.uid, superBreak, unit.element, null, "superbreak");
+      this.recordBondDamage(unit, superBreak);
       if (target.hp === 0) {
         target.alive = false;
         this.writeLog(target.name + " is defeated.");
@@ -1147,7 +1722,9 @@
     feixiao.rays = Math.min(threshold, feixiao.rays + 1);
     feixiao.followUps++;
     this.writeLog(feixiao.name + " follows up on Prey (" + feixiao.rays + "/" + threshold + " Flying Rays).");
-    this.hitEnemy(feixiao, target, feixiao.kit.empowerment.followUpMultiplier || 0.6, 10, false);
+    var followMultiplier = (feixiao.kit.empowerment.followUpMultiplier || 0.6) *
+      (1 + this.bondMods.followUpDmgPct);
+    this.hitEnemy(feixiao, target, followMultiplier, 10, false);
 
     if (feixiao.rays >= threshold && !feixiao.raysPrimed) {
       feixiao.raysPrimed = true;
@@ -1270,6 +1847,17 @@
       turnLimitAV: this.turnLimitAV,
       sp: this.sp,
       maxSp: this.maxSp,
+      bondLevels: this.bondLevels,
+      bondDamage: Object.keys(this.bondLevels).map(function (id) {
+        var def = DATASET && DATASET.bondById ? DATASET.bondById(id) : null;
+        return {
+          id: id,
+          name: def ? def.name : id,
+          amount: Math.round((self.bondDamage[id] || 0) * 10) / 10
+        };
+      }).sort(function (a, b) {
+        return b.amount - a.amount;
+      }),
       actionCount: this.actionCount,
       waitingForPlayer: this.waitingForPlayer ? this.waitingForPlayer.uid : null,
       actions: this.getAvailableActions(),
@@ -1284,6 +1872,9 @@
           side: unit.side,
           position: unit.position,
           slot: isPlayer ? unit.slot : undefined,
+          star: isPlayer ? unit.star : undefined,
+          equipment: isPlayer ? unit.equipment.slice() : undefined,
+          role: isPlayer ? unit.role : undefined,
           characterId: isPlayer || isSummon ? unit.characterId : undefined,
           ownerUid: isSummon ? unit.ownerUid : undefined,
           isSummon: isSummon || undefined,
@@ -1294,6 +1885,7 @@
           element: unit.element,
           hp: Math.max(0, Math.round(unit.hp * 10) / 10),
           maxHp: unit.maxHp,
+          shield: isPlayer ? Math.round((unit.shield || 0) * 10) / 10 : undefined,
           infiniteHp: unit.infiniteHp || undefined,
           damageVersion: unit.damageVersion || 0,
           atk: Math.round(self.getAtk(unit) * 10) / 10,
@@ -1312,6 +1904,7 @@
           maxToughness: isEnemy ? unit.maxToughness : undefined,
           weakness: isEnemy ? unit.weakness.slice() : undefined,
           broken: isEnemy ? unit.broken : undefined,
+          boss: isEnemy ? unit.boss : undefined,
           dots: isEnemy ? (unit.dots || []).map(function (dot) {
             return { type: dot.type, damage: dot.damage, turns: dot.turns, element: dot.element };
           }) : undefined,

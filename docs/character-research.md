@@ -114,16 +114,23 @@ Element assignments for late-4.x units (The Dahlia, Yao Guang, Cipher, Mydei, Ri
 | --- | --- | --- | --- | --- |
 | Firefly | 5 | Fire | On-Field | Break, Stellaron Hunters |
 | Tribbie | 2 | Quantum | Both | Day Demigod, AoE ATK, Quantum Resonance |
+| Kafka | 2 | Lightning | Off-Field | Stellaron Hunters, DoT |
+| Ruan Mei | 2 | Ice | Off-Field | Break, Cosmic Scholar |
+| Aventurine | 2 | Imaginary | On-Field | IPC, Follow-Up ATK, Shield |
+| Sparkle | 2 | Quantum | Off-Field | The Planet of Festivities, Skill Points, Quantum Resonance |
+| Pela | 2 | Ice | Off-Field | Belobog, Debuff |
+
+The five 2-cost anchors above ship with authored combat profiles for the run slice. Characters without authored combat data use a generic role profile (`healer`, `buffer`, `debuff`, `shield` or `attacker`) until their kits are ported; that profile is explicitly not 4.6 parity.
 
 ### Next candidates
 
-Continue by cost tier, starting with 2-costs to fill the systems the 1-cost roster cannot anchor:
+Continue by cost tier:
 
-- **Kafka** - DoT engine.
-- **Aventurine** - Follow-Up ATK and Shield.
-- **Sparkle** - Skill Points and Quantum Resonance.
-- **Ruan Mei** - Break enabler.
-- **Pela** - Debuff and Belobog bridge.
+- **Lingsha / Hyacine** - Heal and Break sustain.
+- **Dr. Ratio / Robin** - Follow-Up ATK and Cosmic Scholar.
+- **Sunday** - Energy and Express Cohort.
+- **Fu Xuan / Seele** - Quantum Resonance and Belobog.
+- **Dan Heng forms** - Xianzhou, Express Cohort and Skill Points.
 
 ## 7. Open questions
 

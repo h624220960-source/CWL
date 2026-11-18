@@ -41,10 +41,10 @@
       <p class="muted screen-subtitle">Choose how you want to play Currency Wars.</p>
 
       <div class="mode-grid">
-        <button class="mode-card locked" type="button" disabled>
-          <span class="mode-tag">Locked</span>
+        <button class="mode-card" type="button" data-mode="standard">
+          <span class="mode-tag">Run</span>
           <h3>Standard Gambit</h3>
-          <p>The combat system is being rebuilt from the ground up.</p>
+          <p>Play a three-plane run: shop, deploy, fight, and build Bonds.</p>
         </button>
 
         <button class="mode-card locked" type="button" disabled>
@@ -67,7 +67,87 @@
       </div>
     </section>
 
-    <!-- Screen 3: Character Lab -->
+    <!-- Screen 3: Standard Gambit run -->
+    <section id="screen-run" class="screen run-screen" hidden>
+      <div class="cw-topbar">
+        <button id="runBack" class="cw-icon-btn" type="button" aria-label="Back">&#8592;</button>
+        <div class="cw-player-chip">
+          <span id="runAvatar" class="cw-avatar">S</span>
+          <span class="cw-player-level">Lv <b id="runLevelBadge">3</b></span>
+        </div>
+        <div class="cw-phase-block">
+          <div class="cw-phase-title">
+            <span>Preparation Phase</span>
+            <strong id="runPhaseLabel">1-1</strong>
+          </div>
+          <div id="runNodeTrack" class="cw-node-track"></div>
+          <div class="cw-top-hp"><span class="cw-heart">&#10084;</span><b id="runSquadHpTop">100</b></div>
+        </div>
+        <div class="cw-top-tools">
+          <button id="runCodexBtn" class="cw-icon-btn" type="button">Itinerary</button>
+          <button id="runGearBtn" class="cw-icon-btn" type="button">Gear</button>
+          <button id="runAbandon" class="cw-icon-btn danger" type="button">Abandon</button>
+        </div>
+      </div>
+
+      <div class="cw-run-body">
+        <aside class="cw-bond-rail">
+          <div id="runEnvironment" class="cw-env-chip"></div>
+          <h3>Bonds</h3>
+          <div id="runBonds"></div>
+          <h3>Strategies</h3>
+          <div id="runStrategies" class="cw-strategy-list"></div>
+        </aside>
+
+        <div id="runBoardArea" class="cw-board-area">
+          <div id="runShopPanel" class="cw-shop-panel">
+            <div id="runShop" class="cw-shop-cards"></div>
+            <div class="cw-shop-meta">
+              <div id="runOdds" class="cw-odds"></div>
+              <input id="runShopSearch" class="cw-search" type="text" placeholder="Search shop">
+              <button id="runLock" class="cw-icon-btn" type="button">Lock</button>
+              <button id="runHideShop" class="cw-icon-btn" type="button">Hide</button>
+            </div>
+          </div>
+
+          <div class="cw-board">
+            <div class="cw-zone">
+              <div class="cw-zone-head"><span>On-Field Area</span><strong id="runOnCount">0 / 4</strong></div>
+              <div id="runOnSlots" class="cw-slots on" data-position="on"></div>
+            </div>
+            <div class="cw-divider"></div>
+            <div class="cw-zone">
+              <div class="cw-zone-head"><span>Off-Field Area</span><strong id="runOffCount">0 / 6</strong></div>
+              <div id="runOffSlots" class="cw-slots off" data-position="off"></div>
+            </div>
+            <button id="runReroll" class="cw-refresh" type="button">
+              <span>Refresh</span>
+              <b id="runRefreshCost">2</b>
+            </button>
+          </div>
+
+          <div class="cw-bench-bar">
+            <div class="cw-exp-card">
+              <span class="cw-exp-label">Purchase Experience</span>
+              <strong>Lv. <b id="runLevel">3</b></strong>
+              <span id="runXp">0 / 4</span>
+              <button id="runBuyXp" class="cw-buy-xp" type="button"><span class="cw-coin"></span><b id="runBuyXpCost">4</b></button>
+            </div>
+            <div id="runBench" class="cw-bench" data-position="bench"></div>
+            <div class="cw-bench-right">
+              <div class="cw-gold"><span class="cw-coin"></span><b id="runGold">0</b></div>
+              <button id="runStoreToggle" class="cw-store-btn" type="button">Store</button>
+              <button id="runBattle" class="cw-battle-btn" type="button">Battle</button>
+            </div>
+          </div>
+
+          <p id="runNodeHint" class="cw-node-hint"></p>
+          <div id="runMiniLog" class="cw-mini-log"></div>
+        </div>
+      </div>
+    </section>
+
+    <!-- Screen 4: Character Lab -->
     <section id="screen-lab" class="screen lab-screen" hidden>
       <div class="lab-head">
         <div>
@@ -104,7 +184,26 @@
 
     <!-- Screen 4: Combat Sandbox -->
     <section id="screen-battle" class="screen battle-screen" hidden>
-      <div class="battle-head">
+      <div class="cw-battle-top">
+        <div class="cw-battle-node"><span>Phase</span><strong id="battleWave">1-1</strong></div>
+        <div class="cw-battle-progress">
+          <div class="cw-progress-track">
+            <span id="battleProgressFill"></span>
+            <i class="cw-threshold"></i>
+          </div>
+          <span id="battleProgressText" class="muted">0 / 2000 AV</span>
+        </div>
+        <div class="cw-battle-hp"><span class="cw-heart">&#10084;</span><b id="battleSquadHp">100</b></div>
+        <div class="cw-battle-gold"><span class="cw-coin"></span><b id="battleGold">0</b></div>
+        <div class="cw-battle-tools">
+          <label class="cw-auto-pill" title="Auto-play">
+            <input id="battleAuto" type="checkbox">
+            <span>AUTO</span>
+          </label>
+        </div>
+      </div>
+
+      <div id="battleHeader" class="battle-head">
         <div>
           <h2 class="screen-title battle-title">Combat Sandbox</h2>
           <p class="muted">Infinite-HP test run: Aglaea, Firefly, Feixiao and Qingque vs three Debt Collectors. The run ends at 2000 AV, about 20 turns at 100 SPD. Click an enemy to target it, click an ally for stats, and press 1-4 for Ultimates.</p>
@@ -156,10 +255,6 @@
           <div class="battle-controls">
             <p id="battleHint" class="battle-hint muted">Select an enemy target.</p>
             <div id="battleActions" class="battle-actions"></div>
-            <label class="battle-auto">
-              <input id="battleAuto" type="checkbox">
-              <span>Auto-play</span>
-            </label>
           </div>
 
           <section class="battle-log-wrap">
@@ -170,6 +265,11 @@
             <div id="battleLog" class="battle-log"></div>
           </section>
         </div>
+
+        <aside id="battleBondRail" class="cw-bond-dmg">
+          <h3>Bond DMG</h3>
+          <div id="battleBondList"></div>
+        </aside>
       </div>
     </section>
   </main>
@@ -190,6 +290,17 @@
     <div class="battle-stats-panel" role="dialog" aria-modal="true" aria-labelledby="battleStatsName">
       <button id="battleStatsClose" class="battle-stats-close" type="button" aria-label="Close">&times;</button>
       <div id="battleStatsBody" class="battle-stats-body"></div>
+    </div>
+  </div>
+
+  <!-- Run choice / result overlay -->
+  <div id="runOverlay" class="run-overlay" hidden>
+    <div class="run-modal" role="dialog" aria-modal="true" aria-labelledby="runOverlayTitle">
+      <header class="run-modal-head">
+        <h2 id="runOverlayTitle"></h2>
+        <button id="runOverlayClose" class="run-modal-close" type="button" aria-label="Close">&times;</button>
+      </header>
+      <div id="runOverlayBody" class="run-modal-body"></div>
     </div>
   </div>
 
@@ -221,10 +332,13 @@
     <p>&copy; <span id="year"></span> CurrencyWarsLegacy - a fan remake. Not affiliated with HoYoverse.</p>
   </footer>
 
-  <script src="script.js"></script>
+  <script src="data/cw-4.6.js"></script>
   <script src="characters.js"></script>
   <script src="combat.js"></script>
+  <script src="run.js"></script>
+  <script src="script.js"></script>
   <script src="battleScreen.js"></script>
   <script src="characterLab.js"></script>
+  <script src="runScreen.js"></script>
 </body>
 </html>

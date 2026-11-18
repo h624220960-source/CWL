@@ -267,4 +267,112 @@ function runAutoBattle(options) {
   assert(event.amount > 0, "damage event should have an amount");
 })();
 
+
+(function testOffFieldAutomation() {
+  var battle = Combat.createBattle({
+    roster: [
+      { id: "aglaea", position: "on" },
+      { id: "kafka", position: "off" }
+    ],
+    enemies: ["debtCollector", "debtCollector"],
+    bonds: [{ id: "dot", level: 2 }],
+    seed: 11,
+    turnLimitAV: 1500
+  });
+  var kafka = battle.players.filter(function (player) { return player.characterId === "kafka"; })[0];
+  var aglaea = battle.players.filter(function (player) { return player.characterId === "aglaea"; })[0];
+  assert(kafka, "off-field Kafka should construct");
+  assert.strictEqual(kafka.position, "off", "Kafka should be Off-Field");
+  assert(battle.getTargetableAllies().every(function (unit) {
+    return unit.uid !== kafka.uid;
+  }), "Off-Field units should not be targetable");
+
+  battle.waitingForPlayer = null;
+  battle.units.forEach(function (unit) {
+    unit.av = unit.uid === kafka.uid ? 0 : 9999;
+  });
+  battle.stepOnce();
+  assert(battle.log.some(function (entry) {
+    return entry.text.indexOf("hexes") !== -1 || entry.text.indexOf("support") !== -1;
+  }), "off-field unit should act automatically");
+})();
+
+(function testBondAndEquipmentModifiers() {
+  var plain = Combat.createBattle({
+    roster: [{ id: "aglaea", position: "on" }],
+    enemies: ["debtCollector"],
+    seed: 12
+  });
+  var bonded = Combat.createBattle({
+    roster: [{ id: "aglaea", position: "on" }],
+    enemies: ["debtCollector"],
+    bonds: [{ id: "energy", level: 2 }, { id: "day_demigod", level: 2 }],
+    seed: 12
+  });
+  assert(bonded.players[0].energy > plain.players[0].energy, "Energy bond should raise starting Energy");
+  assert(bonded.getSpd(bonded.players[0]) > plain.getSpd(plain.players[0]), "Day Demigod should raise SPD");
+
+  var equipped = Combat.createBattle({
+    roster: [{ id: "aglaea", position: "on", equipment: ["photon_cell", "roller_skates"] }],
+    enemies: ["debtCollector"],
+    seed: 12
+  });
+  assert.strictEqual(equipped.players[0].energy, plain.players[0].energy + 15, "Photon Cell should add 15 starting Energy");
+  assert(equipped.getSpd(equipped.players[0]) > plain.getSpd(plain.players[0]), "Roller Skates should raise SPD");
+})();
+
+(function testStarScalingAndEnemySkill() {
+  var battle = Combat.createBattle({
+    roster: [{ id: "aglaea", position: "on", star: 2 }],
+    enemies: ["rivalBroker"],
+    seed: 13,
+    turnLimitAV: 1500
+  });
+  var aglaea = battle.players[0];
+  var plain = Combat.createBattle({
+    roster: [{ id: "aglaea", position: "on" }],
+    enemies: ["debtCollector"],
+    seed: 13
+  });
+  assert(aglaea.maxHp > plain.players[0].maxHp, "2-star units should have higher HP");
+
+  var enemy = battle.enemies[0];
+  enemy.turnCount = 1;
+  battle.enemyTurn(enemy);
+  assert(battle.log.some(function (entry) {
+    return entry.text.indexOf("Short Sell") !== -1;
+  }), "rivalBroker should use its every-2-turns skill");
+})();
+
+
+(function testBondDamagePanelData() {
+  var battle = Combat.createBattle({
+    roster: [{ id: "aglaea", position: "on" }],
+    enemies: ["debtCollector"],
+    bonds: [{ id: "energy", level: 2 }],
+    seed: 14
+  });
+  var initial = battle.getState().bondDamage;
+  assert(initial.some(function (entry) { return entry.id === "energy" && entry.amount === 0; }),
+    "active bonds should appear with zero damage before combat");
+  battle.useBasic(battle.players[0], battle.enemies[0]);
+  var after = battle.getState().bondDamage.filter(function (entry) {
+    return entry.id === "energy";
+  })[0];
+  assert(after && after.amount > 0, "Bond DMG should accumulate from player damage");
+})();
+
+(function testEnemyNumbering() {
+  var battle = Combat.createBattle({
+    party: ["aglaea"],
+    enemies: ["debtCollector", "debtCollector", "ipcEnforcer"],
+    seed: 15
+  });
+  assert.strictEqual(battle.enemies[0].name, "Debt Collector", "first enemy should have no suffix");
+  assert.strictEqual(battle.enemies[1].name, "Debt Collector 2", "duplicate enemies should be numbered");
+  assert.strictEqual(battle.enemies[2].name, "IPC Enforcer", "unique enemies should not be numbered");
+})();
+
 console.log("Combat tests passed.");
+
+
